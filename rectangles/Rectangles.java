@@ -1,27 +1,27 @@
-PShape square;
 
 import processing.core.PApplet;
-import Test;
+import processing.core.PShape;
 
 public class Rectangles extends PApplet {
+	
+	private PShape square;
 
 	public void settings() {
-		Test hello;
-		System.out.println(hello.testString);
-		size(100, 100);
-		square = createShape(RECT, 0, 0, 50, 50);
-		square.setFill(int(0, 0, 255));
-		square.setStroke(false);
+		System.out.println(Test.testString);
+		size(500, 500);
+		//this.square = createShape(RECT, 0, 0, 50, 50);
+		//this.square.setFill(color(0, 0, 255));
+		//this.square.setStroke(false);
 	}
 
 	public void draw() {
-		shape(square, 25, 25);
+		rect(30, 20, 25, 25);
 	}
 
 	//API stuff from https://happycoding.io/tutorials/java/processing-in-java
 
 	public static void main(String[] args) {
-		String processingArgs = "Rectangles";
+		String[] processingArgs = {"Rectangles"};
 		Rectangles sketch = new Rectangles();
 		PApplet.runSketch(processingArgs, sketch);
 	}
