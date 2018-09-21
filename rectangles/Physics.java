@@ -1,103 +1,96 @@
+import java.util.ArrayList;
+
 import processing.core.PApplet;
+import processing.core.PVector;
 
 public class Physics extends PApplet{
 	private static final float GRAV = (float) -9.8;
-	private float xPos;
-	private float yPos;
-	private float objWidth;
-	private float objHeight;
-	private float xV = 0;
-	private float yV = 0;
-	private float xA = 0;
-	private float yA = 0;
+	
+	// Vector code inspired by processing tutorial 'acceleration with vectors'
+	private PVector location;
+	private PVector velocity;
+	private PVector acceleration;
+	private float topSpeed;
+	private float radius;
 
-	public Physics(float xPos, float yPos, float objWidth, float objHeight) {
-		this.xPos = xPos;
-		this.yPos = yPos;
-		this.objWidth = objWidth;
-		this.objHeight = objHeight;
+	// Collision based on circle around center of object
+	// inspired from https://happycoding.io/tutorials/processing/collision-detection
+
+	public Physics(float x, float y, float radius, float topSpeed) {
+		this.location = new PVector(x, y);
+		this.velocity = new PVector(0,0);
+		this.acceleration = new PVector(0, GRAV);
+		this.topSpeed = topSpeed;
+		this.radius = radius;
+
 	}
 
-	public float updateY(float t) {
-		float accl = this.yA + GRAV;
-		this.yPos = (this.yPos + this.yV * t + (1/2) * accl * (t * t));
-		this.yV = this.yV + accl * t;
-
-		// Did I hit the floor/ceiling
-		if ((this.yPos + this.objHeight) > height) {
-			this.yPos = height - this.objHeight;
+	public PVector update(ArrayList<GameObj> objects) {
+		//this.acceleration.setMag(0.2);
+		
+		for (GameObj obj : objects) {
+			if (dist(this.location.x, this.location.y, obj.getPy().getLocation().x,
+					obj.getPy().getLocation().y) < (this.radius + obj.getPy().getRadius())) {
+				this.velocity.mult(0);
+				this.acceleration.mult(0);
+			}
 		}
-		if (this.yPos > height) {
-			this.yPos = height;
-		}
-
-		return this.yPos;
+		
+		this.velocity.add(this.acceleration);
+		this.velocity.limit(this.topSpeed);
+		this.location.add(this.velocity);
+		
+		// Reset acceleration?
+		this.acceleration = new PVector(0, GRAV);
+		
+		return this.location;
 	}
 
-	public float updateX(float t) {
-		// TODO: Friction?
-		this.xPos = (this.xPos + this.xV * t + (1/2) * this.xA * (t * t));
-		this.xV = this.xV + this.xA * t;
-
-		// Did I hit the walls
-		if (this.xPos < 0) {
-			this.xPos = 0;
-			this.xA = this.xA * (-1);
-		}
-		if ((this.xPos + this.objWidth) > width) {
-			this.xPos = (width - this.objWidth);
-			this.yA = this.yA * (-1);
-		}
-
-		return this.xPos;
+	public PVector getAcceleration() {
+		return acceleration;
 	}
 
-	public float getxPos() {
-		return xPos;
+	public void setAcceleration(PVector acceleration) {
+		this.acceleration = acceleration;
 	}
 
-	public void setxPos(float xPos) {
-		this.xPos = xPos;
+	public void setAccelerationX(float x) {
+		this.acceleration.x = x;
+	}
+	
+	public void setAccelerationY(float y) {
+		this.acceleration.x = (y + GRAV);
 	}
 
-	public float getyPos() {
-		return yPos;
+	public PVector getLocation() {
+		return location;
 	}
 
-	public void setyPos(float yPos) {
-		this.yPos = yPos;
+	public void setLocation(PVector location) {
+		this.location = location;
 	}
 
-	public float getxV() {
-		return xV;
+	public PVector getVelocity() {
+		return velocity;
 	}
 
-	public void setxV(float xV) {
-		this.xV = xV;
+	public void setVelocity(PVector velocity) {
+		this.velocity = velocity;
 	}
 
-	public float getyV() {
-		return yV;
+	public float getTopSpeed() {
+		return topSpeed;
 	}
 
-	public void setyV(float yV) {
-		this.yV = yV;
+	public void setTopSpeed(float topSpeed) {
+		this.topSpeed = topSpeed;
 	}
 
-	public float getxA() {
-		return xA;
+	public float getRadius() {
+		return radius;
 	}
 
-	public void setxA(float xA) {
-		this.xA = xA;
+	public void setRadius(float radius) {
+		this.radius = radius;
 	}
-
-	public float getyA() {
-		return yA;
-	}
-
-	public void setyA(float yA) {
-		this.yA = yA;
-	}
-
 }
