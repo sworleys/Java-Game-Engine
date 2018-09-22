@@ -10,10 +10,17 @@ public class GameObj extends PApplet {
 	private PShape shape;
 	private float objWidth;
 	private float objHeight;
+	private boolean isFloor;
 
-	public GameObj(float objWidth, float objHeight, float x, float y, PShape shape) {
-		this.py = new Physics(x, y, (objWidth + objHeight)/2, 5);
-		this.shape = shape;
+	public GameObj(float objWidth, float objHeight, float mass, float x, float y, PShape shape, 
+			boolean isFloor) {
+		this.isFloor = isFloor;
+		this.py = new Physics(x, y, objWidth, objHeight, mass, 20);
+		try {
+			this.shape = shape;
+		} catch (NullPointerException e) {
+			// Do nothing, its probably screen limits
+		}
 	}
 
 	public Physics getPy() {
@@ -46,5 +53,9 @@ public class GameObj extends PApplet {
 
 	public void setObjHeight(float objHeight) {
 		this.objHeight = objHeight;
+	}
+
+	public boolean isFloor() {
+		return this.isFloor;
 	}
 }

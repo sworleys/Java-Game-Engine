@@ -7,9 +7,13 @@ import processing.core.PVector;
 
 public class Rectangles extends PApplet {
 
+	private GameObj floor;
+	private GameObj ceiling;
+	private GameObj leftWall;
+	private GameObj rightWall;
 	private GameObj square;
 	private GameObj rectangle;
-	
+
 	private ArrayList<GameObj> objects = new ArrayList<GameObj>();
 
 	public void settings() {
@@ -19,6 +23,17 @@ public class Rectangles extends PApplet {
 	public void setup() {
 		background(0);
 		frameRate(60);
+
+		this.floor = new GameObj(width, (float) 100, 0, 0, height, null, true);
+		this.ceiling = new GameObj(width, (float) 100, 0, 0, -100, null, false);
+		this.leftWall = new GameObj((float) 100, height, 0, -100, 0, null, false);
+		this.rightWall = new GameObj((float) 100, height, width, width, 0, null, false);
+
+		this.objects.add(this.floor);
+		this.objects.add(this.ceiling);
+		this.objects.add(this.leftWall);
+		this.objects.add(this.rightWall);
+
 		// Place square and rectangle in bottom corners of screen
 		float sqrDim = 50;
 		float rectWidth = 100;
@@ -26,42 +41,53 @@ public class Rectangles extends PApplet {
 		PShape sqr = createShape(RECT, 0, 0, sqrDim, sqrDim);
 		sqr.setFill(color(random(255), random(255), random(255)));
 		sqr.setStroke(false);
-		
+
 		PShape rect = createShape(RECT, 0, 0, rectWidth, rectHeight);
 		rect.setFill(color(random(255), random(255), random(255)));
 		rect.setStroke(false);
-		
-		this.square = new GameObj(sqrDim, sqrDim, 0, height - sqrDim, sqr);
-		this.rectangle = new GameObj(100, 50, width - rectWidth, height - rectHeight, rect);
+
+		this.square = new GameObj(sqrDim, sqrDim, 0, height - sqrDim - 2, 1, sqr, false);
+		this.rectangle = new GameObj(rectWidth, rectHeight, 2, width - rectWidth, height - rectHeight, rect, false);
 
 		// TODO: This will need to be reworked for server-client
 		this.objects.add(this.rectangle);
-		
+
 	}
 
 	public void draw() {
 		background(0);
+		// Walls
+		rect((float) this.floor.getPy().getBounds2D().getX(), (float) this.floor.getPy().getBounds2D().getY(),
+				(float) this.floor.getPy().getBounds2D().getWidth(), (float) this.floor.getPy().getBounds2D().getHeight());
+		rect((float) this.ceiling.getPy().getBounds2D().getX(), (float) this.ceiling.getPy().getBounds2D().getY(),
+				(float) this.ceiling.getPy().getBounds2D().getWidth(), (float) this.ceiling.getPy().getBounds2D().getHeight());
+		rect((float) this.leftWall.getPy().getBounds2D().getX(), (float) this.leftWall.getPy().getBounds2D().getY(),
+				(float) this.leftWall.getPy().getBounds2D().getWidth(), (float) this.leftWall.getPy().getBounds2D().getHeight());
+		rect((float) this.rightWall.getPy().getBounds2D().getX(), (float) this.rightWall.getPy().getBounds2D().getY(),
+				(float) this.rightWall.getPy().getBounds2D().getWidth(), (float) this.rightWall.getPy().getBounds2D().getHeight());
+
 		// Update physics
-		PVector newLoc = this.square.getPy().update(objects);
+		this.square.getPy().update(objects);
+
 		// Render
-		shape(this.square.getShape(), newLoc.x, newLoc.y);
+		shape(this.square.getShape(), this.square.getPy().getLocation().x,
+				this.square.getPy().getLocation().y);
+		shape(this.rectangle.getShape(), this.rectangle.getPy().getLocation().x,
+				this.rectangle.getPy().getLocation().y);
 
 	}
 
 	public void keyPressed() {
 		if (key == CODED) {
 			if (keyCode == LEFT) {
-				System.out.println("LEFT pressed");
-				this.square.getPy().setAccelerationX(-1);
+				this.square.getPy().setAccelerationX(-5);
 			}
 			if (keyCode == RIGHT) {
-				System.out.println("RIGHT pressed");
-				this.square.getPy().setAccelerationX(1);
+				this.square.getPy().setAccelerationX(5);
 			}
 		}
 		if (key == ' ') {
-			System.out.println("SPACE pressed");
-			this.square.getPy().setAccelerationY(20);
+			this.square.getPy().setAccelerationY(-20);
 		}
 	}
 

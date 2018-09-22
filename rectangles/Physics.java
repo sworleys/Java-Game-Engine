@@ -1,49 +1,65 @@
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.PathIterator;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 
 import processing.core.PApplet;
 import processing.core.PVector;
 
-public class Physics extends PApplet{
-	private static final float GRAV = (float) -9.8;
-	
+public class Physics extends PApplet implements Shape {
+	private static final float GRAV = (float) 0.8;
+
 	// Vector code inspired by processing tutorial 'acceleration with vectors'
 	private PVector location;
 	private PVector velocity;
 	private PVector acceleration;
 	private float topSpeed;
-	private float radius;
+	private float objWidth;
+	private float objHeight;
+	private float mass;
 
-	// Collision based on circle around center of object
-	// inspired from https://happycoding.io/tutorials/processing/collision-detection
-
-	public Physics(float x, float y, float radius, float topSpeed) {
+	public Physics(float x, float y, float objWidth, float objHeight, float mass, float topSpeed) {
 		this.location = new PVector(x, y);
 		this.velocity = new PVector(0,0);
 		this.acceleration = new PVector(0, GRAV);
 		this.topSpeed = topSpeed;
-		this.radius = radius;
-
+		this.objWidth = objWidth;
+		this.objHeight = objHeight;
+		this.mass = mass;
 	}
 
 	public PVector update(ArrayList<GameObj> objects) {
 		//this.acceleration.setMag(0.2);
-		
+
 		for (GameObj obj : objects) {
-			if (dist(this.location.x, this.location.y, obj.getPy().getLocation().x,
-					obj.getPy().getLocation().y) < (this.radius + obj.getPy().getRadius())) {
-				this.velocity.mult(0);
-				this.acceleration.mult(0);
+			if (this.intersects(obj.getPy().getBounds2D())) {
+				if (obj.isFloor()) {
+					this.velocity.y = (float) -1;
+					this.acceleration.mult(0);
+				} else {
+					this.velocity.mult(-1);
+				}
+				break;
 			}
 		}
-		
+
 		this.velocity.add(this.acceleration);
 		this.velocity.limit(this.topSpeed);
 		this.location.add(this.velocity);
-		
+
 		// Reset acceleration?
 		this.acceleration = new PVector(0, GRAV);
 		
 		return this.location;
+	}
+	
+	// From processing tutorial forces with vectors
+	public void applyForce(PVector force) {
+		PVector f = PVector.div(force, this.mass);
+		acceleration.add(f);
 	}
 
 	public PVector getAcceleration() {
@@ -59,7 +75,7 @@ public class Physics extends PApplet{
 	}
 	
 	public void setAccelerationY(float y) {
-		this.acceleration.x = (y + GRAV);
+		this.acceleration.y = (y + GRAV);
 	}
 
 	public PVector getLocation() {
@@ -77,6 +93,9 @@ public class Physics extends PApplet{
 	public void setVelocity(PVector velocity) {
 		this.velocity = velocity;
 	}
+	public void setVelocityX(float velocity) {
+		this.velocity.x = velocity;
+	}
 
 	public float getTopSpeed() {
 		return topSpeed;
@@ -86,11 +105,61 @@ public class Physics extends PApplet{
 		this.topSpeed = topSpeed;
 	}
 
-	public float getRadius() {
-		return radius;
+	@Override
+	public boolean contains(Point2D p) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
-	public void setRadius(float radius) {
-		this.radius = radius;
+	@Override
+	public boolean contains(Rectangle2D r) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean contains(double x, double y) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean contains(double x, double y, double w, double h) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public Rectangle getBounds() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Rectangle2D getBounds2D() {
+		return new Rectangle2D.Float(this.location.x, this.location.y, this.objWidth, this.objHeight);
+	}
+
+	@Override
+	public PathIterator getPathIterator(AffineTransform at) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public PathIterator getPathIterator(AffineTransform at, double flatness) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean intersects(Rectangle2D r) {
+		return this.getBounds2D().intersects(r.getBounds2D());
+	}
+
+	@Override
+	public boolean intersects(double x, double y, double w, double h) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }
