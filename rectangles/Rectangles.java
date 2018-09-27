@@ -1,5 +1,6 @@
 
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
 
 import processing.core.PApplet;
 import processing.core.PShape;
@@ -7,6 +8,10 @@ import processing.core.PVector;
 
 public class Rectangles extends PApplet {
 
+	private boolean isServer;
+	private ThreadPoolServer server;
+	private ThreadPoolClient client;
+	private ExecutorService threadPool;
 	private GameObj floor;
 	private GameObj ceiling;
 	private GameObj leftWall;
@@ -16,6 +21,10 @@ public class Rectangles extends PApplet {
 
 	private ArrayList<GameObj> objects = new ArrayList<GameObj>();
 
+	public Rectangles(boolean isServer) {
+		this.isServer = isServer;
+	}
+	
 	public void settings() {
 		size(640, 360);
 	}
@@ -51,6 +60,10 @@ public class Rectangles extends PApplet {
 
 		// TODO: This will need to be reworked for server-client
 		this.objects.add(this.rectangle);
+		
+		// Setup Server
+		this.server = new ThreadPoolServer(9000, threadPool);
+		new Thread(this.server).start();
 
 	}
 
@@ -77,6 +90,11 @@ public class Rectangles extends PApplet {
 
 	}
 
+	public void dispose() {
+		System.out.println("Stopping Server");
+		this.server.stop();
+	}
+	
 	public void keyPressed() {
 		if (key == CODED) {
 			if (keyCode == LEFT) {
@@ -95,7 +113,7 @@ public class Rectangles extends PApplet {
 
 	public static void main(String[] args) {
 		String[] processingArgs = {"Rectangles"};
-		Rectangles sketch = new Rectangles();
+		Rectangles sketch = new Rectangles(args[0].toLowerCase() == "server");
 		PApplet.runSketch(processingArgs, sketch);
 	}
 }
