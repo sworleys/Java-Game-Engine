@@ -1,32 +1,36 @@
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 
 // From http://tutorials.jenkov.com/java-multithreaded-servers/thread-pooled-server.html
 
-public class ThreadPoolServer implements Runnable {
+public class Server implements Runnable {
 
 	protected ServerSocket serverSocket;
 	protected Thread runningThread;
-	protected ExecutorService threadPool;
-
+	protected CopyOnWriteArrayList<Client> clients;
+	private Client localClient;
 
 	protected int serverPort = 9000;
 	protected boolean isStopped = false;
-	
-	public ThreadPoolServer(int port, ExecutorService threadPool) {
+	private ExecutorService threadPool;
+
+	public Server(int port, ExecutorService threadPool) {
 		this.serverPort = port;
 		this.threadPool = threadPool;
+		this.clients = new CopyOnWriteArrayList<Client>();
+		this.localClient = new Client(threadPool);
 	}
 
 	@Override
 	public void run() {
-		synchronized(this) {
+		synchronized (this) {
 			this.runningThread = Thread.currentThread();
 		}
 		this.openServerSocket();
-		while (! this.isStopped()) {
+		while (!this.isStopped()) {
 			Socket clientSocket = null;
 			try {
 				clientSocket = this.serverSocket.accept();
@@ -36,19 +40,33 @@ public class ThreadPoolServer implements Runnable {
 				}
 				throw new RuntimeException("Error accepting client connection" + e);
 			}
-			this.threadPool.execute(new WorkerRunnable(clientSocket, "Thread Pooled Server"));
+			Client client = new Client(clientSocket, this.localClient, this.threadPool);
+			synchronized (this.clients) {
+				this.clients.add(client);
+			}
+			new Thread(client).start();
 		}
-		this.threadPool.shutdown();
 		System.out.println("Server Stopped");
 	}
 
 	public synchronized void stop() {
 		this.isStopped = true;
+		for (Client client : clients) {
+			client.stop();
+		}
 		try {
 			this.serverSocket.close();
 		} catch (IOException e) {
 			throw new RuntimeException("Error closing server", e);
 		}
+	}
+
+	public Client getLocalClient() {
+		return this.localClient;
+	}
+
+	public void updateClients() {
+		this.threadPool.execute(new UpdateClients(this.clients, this.localClient));
 	}
 
 	private synchronized boolean isStopped() {
@@ -61,6 +79,28 @@ public class ThreadPoolServer implements Runnable {
 		} catch (IOException e) {
 			throw new RuntimeException("Cannot open port " + this.serverPort + ":" + e);
 		}
+	}
+	
+	/*
+	 * TODO: For now just updating all clients with numIter
+	 */
+	private class UpdateClients implements Runnable {
+
+		private CopyOnWriteArrayList<Client> clients;
+		private Client localState;
+
+		public UpdateClients(CopyOnWriteArrayList<Client> clients, Client localState) {
+			this.clients = clients;
+			this.localState = localState;
+		}
+
+		@Override
+		public void run() {
+			for (Client client : this.clients) {
+				client.write(this.localState.getNumIter());
+			}
+		}
+
 	}
 
 }

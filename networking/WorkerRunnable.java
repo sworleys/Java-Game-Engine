@@ -17,7 +17,7 @@ public class WorkerRunnable implements Runnable {
 	 
 	 @Override 
 	 public void run() { 
-	  try { 
+	  try {
 	   InputStream input = clientSocket.getInputStream(); 
 	   OutputStream output = clientSocket.getOutputStream(); 
 	   long time = System.currentTimeMillis(); 
