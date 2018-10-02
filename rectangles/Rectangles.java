@@ -6,6 +6,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import networking.Client;
+import networking.Server;
 import processing.core.PApplet;
 import processing.core.PShape;
 

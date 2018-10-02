@@ -1,3 +1,4 @@
+package networking;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
@@ -16,12 +17,12 @@ public class Client implements Runnable {
 	
 	private int numIter = 0;
 
-	Client(ExecutorService threadPool) {
+	public Client(ExecutorService threadPool) {
 		this.threadPool = threadPool;
 		this.trackClient = this;
 	}
 	
-	Client(Socket s, Client trackClient, ExecutorService threadPool) {
+	public Client(Socket s, Client trackClient, ExecutorService threadPool) {
 		this.socket = s;
 		if (trackClient != null) {
 			this.trackClient = trackClient;
