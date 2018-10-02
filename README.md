@@ -5,7 +5,7 @@ How to run:
 
 1) Setup running processing in eclipse using this tutorial: https://processing.org/tutorials/eclipse/
 
-2) Import the source code for this project. It is raw source code with no eclipse project information so you will have to import it as such. Eclipse should automagically fix everything the proper way.
+2) Import the source code for this project.
 
 2.5) The "Main" part of the code you want to be running is in Rectangles.Java. This is where your run configurations will go.
 
