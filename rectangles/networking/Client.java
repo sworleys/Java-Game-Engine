@@ -1,10 +1,11 @@
 package networking;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.concurrent.ExecutorService;
 
 public class Client implements Runnable {
@@ -72,7 +73,11 @@ public class Client implements Runnable {
 			try {
 				// TODO: Just keeping track of a number for now
 				synchronized (this.input) {
-					this.threadPool.execute(new ClientRead(this.input.readInt(), this.trackClient));
+					try {
+						this.threadPool.execute(new ClientRead(this.input.readInt(), this.trackClient));
+					} catch (EOFException | SocketException e) {
+						// Ignore, client has just disconnected 
+					}
 				}
 			} catch (IOException e) {
 				System.out.print("Error reading from socket: " + this.socket.toString() + ": " + e.toString());
@@ -132,6 +137,8 @@ public class Client implements Runnable {
 			synchronized (this.getClient().output) {
 				try {
 					this.getClient().output.writeInt(this.data);
+				} catch (SocketException e) {
+					// Ignore client has just disconnected
 				} catch (IOException e) {
 					System.out.println("Error writing to socket: " + this.getClient().socket.toString());
 					e.printStackTrace();

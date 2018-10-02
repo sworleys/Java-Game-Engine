@@ -2,7 +2,6 @@
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -138,7 +137,6 @@ public class Rectangles extends PApplet {
 			this.square.getPy().setAccelerationY(-20);
 		}
 		if (key == 'q') {
-			System.out.println("Q Pressed");
 			this.localClient.iterNumIter();
 			if (!this.isServer) {
 				this.localClient.write(this.localClient.getNumIter());
