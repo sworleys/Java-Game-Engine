@@ -2,12 +2,16 @@ package networking;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 
+import engine.GameObj;
+import processing.core.PApplet;
+
 // From http://tutorials.jenkov.com/java-multithreaded-servers/thread-pooled-server.html
 
-public class Server implements Runnable {
+public class Server extends PApplet implements Runnable {
 
 	protected ServerSocket serverSocket;
 	protected Thread runningThread;
@@ -18,11 +22,11 @@ public class Server implements Runnable {
 	protected boolean isStopped = false;
 	private ExecutorService threadPool;
 
-	public Server(int port, ExecutorService threadPool) {
+	public Server(int port, ExecutorService threadPool, GameObj player) {
 		this.serverPort = port;
 		this.threadPool = threadPool;
 		this.clients = new CopyOnWriteArrayList<Client>();
-		this.localClient = new Client(threadPool);
+		this.localClient = new Client(threadPool, player);
 	}
 
 	@Override
@@ -41,7 +45,14 @@ public class Server implements Runnable {
 				}
 				throw new RuntimeException("Error accepting client connection" + e);
 			}
-			Client client = new Client(clientSocket, this.localClient, this.threadPool);
+			GameObj playerCopy = this.localClient.getPlayer();
+			Random r = new Random();
+			playerCopy.getShape().setFill(color(r.nextInt(255), r.nextInt(255), r.nextInt(255)));
+			
+			Client client = new Client(clientSocket, this.threadPool, new GameObj(playerCopy.getObjWidth(),
+					playerCopy.getObjHeight(), playerCopy.getPy().getMass(), playerCopy.getPy().getLocation().x,
+					playerCopy.getPy().getLocation().y, playerCopy.getShape(), false, false));
+
 			synchronized (this.clients) {
 				this.clients.add(client);
 			}

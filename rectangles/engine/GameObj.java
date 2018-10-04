@@ -1,3 +1,5 @@
+package engine;
+
 import processing.core.PShape;
 
 
@@ -11,9 +13,11 @@ public class GameObj extends PApplet {
 	private boolean isFloor;
 
 	public GameObj(float objWidth, float objHeight, float mass, float x, float y, PShape shape, 
-			boolean isFloor) {
+			boolean isFloor, boolean isGrav) {
 		this.isFloor = isFloor;
-		this.py = new Physics(x, y, objWidth, objHeight, mass, 20);
+		this.objHeight = height;
+		this.objWidth = width;
+		this.py = new Physics(x, y, objWidth, objHeight, mass, 20, isGrav);
 		try {
 			this.shape = shape;
 		} catch (NullPointerException e) {

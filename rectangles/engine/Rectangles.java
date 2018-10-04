@@ -1,7 +1,9 @@
+package engine;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -9,8 +11,13 @@ import networking.Client;
 import networking.Server;
 import processing.core.PApplet;
 import processing.core.PShape;
+import processing.core.PVector;
+
+
 
 public class Rectangles extends PApplet {
+
+	public static final int NUM_THREADS = 5;
 
 	private boolean isServer;
 	private Server server;
@@ -19,12 +26,12 @@ public class Rectangles extends PApplet {
 	private GameObj ceiling;
 	private GameObj leftWall;
 	private GameObj rightWall;
-	private GameObj square;
-	private GameObj rectangle;
+	private GameObj player;
 
-	private ExecutorService threadPool = Executors.newFixedThreadPool(5);
-	private ArrayList<GameObj> objects = new ArrayList<GameObj>();
-
+	private ExecutorService threadPool = Executors.newFixedThreadPool(NUM_THREADS);
+	private CopyOnWriteArrayList<GameObj> objects = new CopyOnWriteArrayList<GameObj>();
+	private CopyOnWriteArrayList<GameObj> movObjects = new CopyOnWriteArrayList<GameObj>();
+	
 	public Rectangles(boolean isServer) {
 		this.isServer = isServer;
 		System.out.println("Server: " + this.isServer);
@@ -38,45 +45,72 @@ public class Rectangles extends PApplet {
 		background(0);
 		frameRate(60);
 		textSize(32);
-		
 
-		this.floor = new GameObj(width, (float) 100, 0, 0, height, null, true);
-		this.ceiling = new GameObj(width, (float) 100, 0, 0, -100, null, false);
-		this.leftWall = new GameObj((float) 100, height, 0, -100, 0, null, false);
-		this.rightWall = new GameObj((float) 100, height, width, width, 0, null, false);
+
+		// Add screen boundaries
+		this.floor = new GameObj(width, (float) 100, 0, 0, height, null, true, false);
+		this.ceiling = new GameObj(width, (float) 100, 0, 0, -100, null, false, false);
+		this.leftWall = new GameObj((float) 100, height, 0, -100, 0, null, false, false);
+		this.rightWall = new GameObj((float) 100, height, width, width, 0, null, false, false);
 
 		this.objects.add(this.floor);
 		this.objects.add(this.ceiling);
 		this.objects.add(this.leftWall);
 		this.objects.add(this.rightWall);
 
-		// Place square and rectangle in bottom corners of screen
+		// Platforms
+		PShape platformStatic = createShape(RECT, 0, 0, width/5, 25);
+		platformStatic.setFill(color(random(255), random(255), random(255)));
+		platformStatic.setStroke(false);
+
+		PShape platformMov = createShape(RECT, 0, 0, width/5, 25);
+		platformMov.setFill(color(random(255), random(255), random(255)));
+		platformMov.setStroke(false);
+		
+		ArrayList<Platform> staticPlatforms = new ArrayList<Platform>();
+		ArrayList<Platform> movPlatforms = new ArrayList<Platform>();
+		
+		for (Platform p : movPlatforms) {
+			p.getPy().setTopSpeed(5);
+			p.getPy().setVelocity(new PVector(5,0));
+		}
+
+		Platform static_1 = new Platform(platformStatic, false, width - platformStatic.getWidth(), 100);
+		Platform static_2 = new Platform(platformStatic, false, platformStatic.getWidth(), 100);
+
+		staticPlatforms.add(static_1);
+		staticPlatforms.add(static_2);
+		
+		Platform mov_1 = new Platform(platformStatic, false, width - platformStatic.getWidth(), 300);
+		Platform mov_2 = new Platform(platformStatic, false, platformStatic.getWidth(), 300);
+
+		movPlatforms.add(mov_1);
+		movPlatforms.add(mov_2);
+
+		this.objects.addAll(staticPlatforms);
+		this.objects.addAll(movPlatforms);
+		
+		this.movObjects.addAll(movPlatforms);
+
+
+		// Player
 		float sqrDim = 50;
-		float rectWidth = 100;
-		float rectHeight = 50;
 		PShape sqr = createShape(RECT, 0, 0, sqrDim, sqrDim);
 		sqr.setFill(color(random(255), random(255), random(255)));
 		sqr.setStroke(false);
-
-		PShape rect = createShape(RECT, 0, 0, rectWidth, rectHeight);
-		rect.setFill(color(random(255), random(255), random(255)));
-		rect.setStroke(false);
-
-		this.square = new GameObj(sqrDim, sqrDim, 0, height - sqrDim - 2, 1, sqr, false);
-		this.rectangle = new GameObj(rectWidth, rectHeight, 2, width - rectWidth, height - rectHeight, rect, false);
-
-		// TODO: This will need to be reworked for server-client
-		this.objects.add(this.rectangle);
+		this.player = new GameObj(sqrDim, sqrDim, 0, height - sqrDim - 2, 1, sqr, false, true);
+		
+		this.movObjects.add(this.player);
 
 
 		// Setup Server
 		if (this.isServer) {
-			this.server = new Server(9200, this.threadPool);
+			this.server = new Server(9200, this.threadPool, this.player);
 			this.localClient = this.server.getLocalClient();
 			new Thread(this.server).start();
 		} else {
 			try {
-				this.localClient = new Client(new Socket("127.0.0.1", 9200), null, threadPool);
+				this.localClient = new Client(new Socket("127.0.0.1", 9200), this.threadPool, this.player);
 			} catch (IOException e) {
 				System.out.println("Error opening local client socket");
 				e.printStackTrace();
@@ -100,13 +134,13 @@ public class Rectangles extends PApplet {
 				(float) this.rightWall.getPy().getBounds2D().getWidth(), (float) this.rightWall.getPy().getBounds2D().getHeight());
 
 		// Update physics
-		this.square.getPy().update(objects);
-
+		for (GameObj obj : movObjects) {
+			obj.getPy().update(this.objects);
+		}
 		// Render
-		shape(this.square.getShape(), this.square.getPy().getLocation().x,
-				this.square.getPy().getLocation().y);
-		shape(this.rectangle.getShape(), this.rectangle.getPy().getLocation().x,
-				this.rectangle.getPy().getLocation().y);
+		shape(this.localClient.getPlayer().getShape(), this.localClient.getPlayer().getPy().getLocation().x,
+				this.localClient.getPlayer().getPy().getLocation().y);
+
 		
 		// Only run update to clients 3fps?
 		if (this.isServer && (frameCount % 20 == 0)) {
@@ -127,14 +161,14 @@ public class Rectangles extends PApplet {
 	public void keyPressed() {
 		if (key == CODED) {
 			if (keyCode == LEFT) {
-				this.square.getPy().setAccelerationX(-5);
+				this.localClient.getPlayer().getPy().setAccelerationX(-5);
 			}
 			if (keyCode == RIGHT) {
-				this.square.getPy().setAccelerationX(5);
+				this.localClient.getPlayer().getPy().setAccelerationX(5);
 			}
 		}
 		if (key == ' ') {
-			this.square.getPy().setAccelerationY(-20);
+			this.localClient.getPlayer().getPy().setAccelerationY(-20);
 		}
 		if (key == 'q') {
 			this.localClient.iterNumIter();

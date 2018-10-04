@@ -1,3 +1,4 @@
+package engine;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
@@ -5,6 +6,7 @@ import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import processing.core.PApplet;
 import processing.core.PVector;
@@ -20,18 +22,24 @@ public class Physics extends PApplet implements Shape {
 	private float objWidth;
 	private float objHeight;
 	private float mass;
+	private boolean isGrav;
 
-	public Physics(float x, float y, float objWidth, float objHeight, float mass, float topSpeed) {
+	public Physics(float x, float y, float objWidth, float objHeight, float mass, float topSpeed, boolean isGrav) {
+		this.isGrav = isGrav;
 		this.location = new PVector(x, y);
 		this.velocity = new PVector(0,0);
-		this.acceleration = new PVector(0, GRAV);
+		if (this.isGrav) {
+			this.acceleration = new PVector(0, GRAV);
+		} else {
+			this.acceleration = new PVector(0, 0);
+		}
 		this.topSpeed = topSpeed;
 		this.objWidth = objWidth;
 		this.objHeight = objHeight;
 		this.mass = mass;
 	}
 
-	public PVector update(ArrayList<GameObj> objects) {
+	public PVector update(CopyOnWriteArrayList<GameObj> objects) {
 		//this.acceleration.setMag(0.2);
 
 		for (GameObj obj : objects) {
@@ -60,6 +68,10 @@ public class Physics extends PApplet implements Shape {
 	public void applyForce(PVector force) {
 		PVector f = PVector.div(force, this.mass);
 		acceleration.add(f);
+	}
+	
+	public float getMass() {
+		return this.mass;
 	}
 
 	public PVector getAcceleration() {

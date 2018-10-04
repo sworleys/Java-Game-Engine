@@ -6,7 +6,9 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
+import engine.GameObj;
 
 public class Client implements Runnable {
 	private Socket socket;
@@ -14,22 +16,21 @@ public class Client implements Runnable {
 	private DataOutputStream output;
 	private boolean isStopped;
 	private ExecutorService threadPool;
-	private Client trackClient;
-	
+	private CopyOnWriteArrayList<GameObj> state;
+	private GameObj player;
+
 	private int numIter = 0;
 
-	public Client(ExecutorService threadPool) {
+	public Client(ExecutorService threadPool, GameObj player) {
 		this.threadPool = threadPool;
-		this.trackClient = this;
+		this.player = player;
+		this.state.add(this.player);
 	}
 	
-	public Client(Socket s, Client trackClient, ExecutorService threadPool) {
+	public Client(Socket s, ExecutorService threadPool, GameObj player) {
 		this.socket = s;
-		if (trackClient != null) {
-			this.trackClient = trackClient;
-		} else {
-			this.trackClient = this;
-		}
+		this.player = player;
+		this.state = new CopyOnWriteArrayList<GameObj>();
 		this.threadPool = threadPool;
 		try {
 			this.input = new DataInputStream(this.getSocket().getInputStream());
@@ -53,6 +54,10 @@ public class Client implements Runnable {
 		return this.numIter;
 	}
 	
+	public GameObj getPlayer() {
+		return this.player;
+	}
+	
 	public synchronized void setNumIter(int n) {
 		this.numIter = n;
 	}
@@ -61,6 +66,10 @@ public class Client implements Runnable {
 		this.numIter++;
 	}
 
+	public synchronized CopyOnWriteArrayList<GameObj> getState() {
+		return this.state;
+	}
+	
 	@Override
 	/*
 	 * Listening socket thread for each client (non-Javadoc) ExecutorService
@@ -74,7 +83,7 @@ public class Client implements Runnable {
 				// TODO: Just keeping track of a number for now
 				synchronized (this.input) {
 					try {
-						this.threadPool.execute(new ClientRead(this.input.readInt(), this.trackClient));
+						this.threadPool.execute(new ClientRead(this.input.readInt(), this));
 					} catch (EOFException | SocketException e) {
 						// Ignore, client has just disconnected 
 					}
