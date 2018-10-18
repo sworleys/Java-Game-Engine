@@ -50,12 +50,24 @@ public class Rectangles extends PApplet {
 		frameRate(60);
 		textSize(32);
 
-		
+
 		// Setup Server
 		if (this.isServer) {
+			// Player
+			float sqrDim = 50;
+			PShape sqr = createShape(RECT, 0, 0, sqrDim, sqrDim);
+			sqr.setFill(color(random(255), random(255), random(255)));
+			sqr.setStroke(false);
+			this.player = new Player(sqr, height - sqrDim  - 2, 1);
+			this.objects.add(this.player);
+			this.objectMap.put(this.player.getUUID(), this.player);
+			this.movObjects.add(this.player);
+
 			this.server = new Server(9200, this.threadPool, this.player);
 			this.localClient = this.server.getLocalClient();
 			new Thread(this.server).start();
+			
+			this.server.newPacket(Packet.PACKET_CREATE, this.player);
 
 
 			// Add screen boundaries
@@ -126,15 +138,6 @@ public class Rectangles extends PApplet {
 				this.server.newPacket(Packet.PACKET_CREATE, p);
 			}
 
-			// Player
-			float sqrDim = 50;
-			PShape sqr = createShape(RECT, 0, 0, sqrDim, sqrDim);
-			sqr.setFill(color(random(255), random(255), random(255)));
-			sqr.setStroke(false);
-			this.player = new Player(sqr, height - sqrDim  - 2, 1);
-			this.objectMap.put(this.player.getUUID(), this.player);
-			this.movObjects.add(this.player);
-			this.server.newPacket(Packet.PACKET_CREATE, this.player);
 	
 		} else {
 			try {
@@ -150,17 +153,9 @@ public class Rectangles extends PApplet {
 
 	public void draw() {
 		background(0);
-		
-		this.renderAll(objects);
-		// Walls
-		rect((float) this.floor.getPy().getBounds2D().getX(), (float) this.floor.getPy().getBounds2D().getY(),
-				(float) this.floor.getPy().getBounds2D().getWidth(), (float) this.floor.getPy().getBounds2D().getHeight());
-		rect((float) this.ceiling.getPy().getBounds2D().getX(), (float) this.ceiling.getPy().getBounds2D().getY(),
-				(float) this.ceiling.getPy().getBounds2D().getWidth(), (float) this.ceiling.getPy().getBounds2D().getHeight());
-		rect((float) this.leftWall.getPy().getBounds2D().getX(), (float) this.leftWall.getPy().getBounds2D().getY(),
-				(float) this.leftWall.getPy().getBounds2D().getWidth(), (float) this.leftWall.getPy().getBounds2D().getHeight());
-		rect((float) this.rightWall.getPy().getBounds2D().getX(), (float) this.rightWall.getPy().getBounds2D().getY(),
-				(float) this.rightWall.getPy().getBounds2D().getWidth(), (float) this.rightWall.getPy().getBounds2D().getHeight());
+
+		this.renderAll(this.objects);
+
 
 		// Dummy Renderer?
 		if (isServer) {
@@ -169,10 +164,6 @@ public class Rectangles extends PApplet {
 				obj.getPy().update(obj, this.objects);
 			}
 		}
-		// Render
-		shape(this.localClient.getPlayer().getShape(), this.localClient.getPlayer().getPy().getLocation().x,
-				this.localClient.getPlayer().getPy().getLocation().y);
-
 		
 		// Only run update to clients 3fps?
 		if (this.isServer && (frameCount % 20 == 0)) {

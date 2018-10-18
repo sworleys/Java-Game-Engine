@@ -12,7 +12,8 @@ public abstract class GameObj extends PApplet {
 	private float objWidth;
 	private float objHeight;
 	private boolean isFloor;
-	private UUID uuid;
+
+	private UUID uuid = UUID.randomUUID();
 
 	public GameObj(float objWidth, float objHeight, float mass, float x, float y, PShape shape, 
 			boolean isFloor, boolean isGrav) {
@@ -20,7 +21,7 @@ public abstract class GameObj extends PApplet {
 		this.objHeight = height;
 		this.objWidth = width;
 		this.py = new Physics(x, y, objWidth, objHeight, mass, 20, isGrav);
-		this.uuid = UUID.randomUUID();
+
 		try {
 			this.shape = shape;
 		} catch (NullPointerException e) {

@@ -31,6 +31,7 @@ public class Client implements Runnable {
 	public Client(ExecutorService threadPool, Player player) {
 		this.threadPool = threadPool;
 		this.player = player;
+		this.state = new ConcurrentHashMap<UUID, GameObj>();
 		this.state.put(player.getUUID(), player);
 	}
 	

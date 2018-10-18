@@ -19,6 +19,7 @@ public class Packet {
 	public Packet(int type, GameObj obj) {
 		this.type = type;
 		this.uuid = obj.getUUID();
+		this.data = new HashMap<>();
 		
 		switch (this.type) {
 		case (PACKET_REGISTER):
