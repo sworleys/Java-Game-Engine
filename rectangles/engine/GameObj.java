@@ -2,15 +2,17 @@ package engine;
 
 import processing.core.PShape;
 
+import java.util.UUID;
 
 import processing.core.PApplet;
 
-public class GameObj extends PApplet {
+public abstract class GameObj extends PApplet {
 	private Physics py;
 	private PShape shape;
 	private float objWidth;
 	private float objHeight;
 	private boolean isFloor;
+	private UUID uuid;
 
 	public GameObj(float objWidth, float objHeight, float mass, float x, float y, PShape shape, 
 			boolean isFloor, boolean isGrav) {
@@ -18,13 +20,21 @@ public class GameObj extends PApplet {
 		this.objHeight = height;
 		this.objWidth = width;
 		this.py = new Physics(x, y, objWidth, objHeight, mass, 20, isGrav);
+		this.uuid = UUID.randomUUID();
 		try {
 			this.shape = shape;
 		} catch (NullPointerException e) {
 			// Do nothing, its probably screen limits
 		}
+		
 	}
+	
+	public abstract String getType();
 
+	public UUID getUUID() {
+		return this.uuid;
+	}
+	
 	public Physics getPy() {
 		return py;
 	}

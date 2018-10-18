@@ -39,11 +39,11 @@ public class Physics extends PApplet implements Shape {
 		this.mass = mass;
 	}
 
-	public PVector update(CopyOnWriteArrayList<GameObj> objects) {
+	public PVector update(GameObj caller, CopyOnWriteArrayList<GameObj> objects) {
 		//this.acceleration.setMag(0.2);
 
 		for (GameObj obj : objects) {
-			if (this.intersects(obj.getPy().getBounds2D())) {
+			if (this.intersects(obj.getPy().getBounds2D()) && !obj.getUUID().equals(caller.getUUID())) {
 				if (obj.isFloor()) {
 					this.velocity.y = (float) -1;
 					this.acceleration.mult(0);

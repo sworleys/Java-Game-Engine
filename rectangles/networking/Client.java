@@ -4,42 +4,51 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.HashMap;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import engine.GameObj;
+import engine.Player;
 
 public class Client implements Runnable {
 	private Socket socket;
-	private DataInputStream input;
-	private DataOutputStream output;
+	private ObjectInputStream input;
+	private ObjectOutputStream output;
 	private boolean isStopped;
 	private ExecutorService threadPool;
-	private CopyOnWriteArrayList<GameObj> state;
-	private GameObj player;
+	private ConcurrentHashMap<UUID, GameObj> state;
+	private Player player;
 
 	private int numIter = 0;
 
-	public Client(ExecutorService threadPool, GameObj player) {
+	public Client(ExecutorService threadPool, Player player) {
 		this.threadPool = threadPool;
 		this.player = player;
-		this.state.add(this.player);
+		this.state.put(player.getUUID(), player);
 	}
 	
-	public Client(Socket s, ExecutorService threadPool, GameObj player) {
+	public Client(Socket s, ExecutorService threadPool, Player player) {
+		if (player != null) {
+			this.player = player;
+		}
 		this.socket = s;
-		this.player = player;
-		this.state = new CopyOnWriteArrayList<GameObj>();
+		this.state = new ConcurrentHashMap<>();
 		this.threadPool = threadPool;
 		try {
-			this.input = new DataInputStream(this.getSocket().getInputStream());
+			this.input = new ObjectInputStream(this.getSocket().getInputStream());
 		} catch (IOException e) {
 			System.out.println("Error opening input stream for socket: " + this.socket.toString());
 			e.printStackTrace();
 		}
 		try {
-			this.output = new DataOutputStream(this.getSocket().getOutputStream());
+			this.output = new ObjectOutputStream(this.getSocket().getOutputStream());
 		} catch (IOException e) {
 			System.out.println("Error opening output stream for socket: " + this.socket.toString());
 			e.printStackTrace();
@@ -66,10 +75,11 @@ public class Client implements Runnable {
 		this.numIter++;
 	}
 
-	public synchronized CopyOnWriteArrayList<GameObj> getState() {
+	public synchronized ConcurrentHashMap<UUID, GameObj> getState() {
 		return this.state;
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	/*
 	 * Listening socket thread for each client (non-Javadoc) ExecutorService
@@ -83,9 +93,12 @@ public class Client implements Runnable {
 				// TODO: Just keeping track of a number for now
 				synchronized (this.input) {
 					try {
-						this.threadPool.execute(new ClientRead(this.input.readInt(), this));
+						this.threadPool.execute(new ClientRead(new Packet((HashMap<String, Object>) this.input.readObject()), this));
 					} catch (EOFException | SocketException e) {
 						// Ignore, client has just disconnected 
+					} catch (ClassNotFoundException e) {
+						System.out.println("Error on readObject:");
+						e.printStackTrace();
 					}
 				}
 			} catch (IOException e) {
@@ -104,8 +117,8 @@ public class Client implements Runnable {
 		}
 	}
 
-	public void write(int data) {
-		this.threadPool.execute(new ClientWrite(data));
+	public void write(Packet p) {
+		this.threadPool.execute(new ClientWrite(p));
 	}
 
 	private synchronized boolean isStopped() {
@@ -119,33 +132,67 @@ public class Client implements Runnable {
 	 *
 	 */
 	private class ClientRead implements Runnable {
-		private int data;
+		private Packet p;
 		private Client client;
 
-		public ClientRead(int data, Client client) {
-			this.data = data;
+		public ClientRead(Packet p, Client client) {
+			this.p = p;
 			this.client = client;
 		}
 
 		@Override
 		public void run() {
-			this.client.setNumIter(this.data);
+			switch (p.getType()) {
+			case (Packet.PACKET_REGISTER):
+				this.handleRegister();
+				break;
+			case (Packet.PACKET_CREATE):
+				this.handleCreate();
+				break;
+			case (Packet.PACKET_DESTROY):
+				this.handleDestroy();
+				break;
+			case (Packet.PACKET_UPDATE):
+				this.handleUpdate();
+				break;
+			default:
+				break;
+			}
+		}
+
+		private void handleUpdate() {
+			
+		}
+
+		private void handleDestroy() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		private void handleCreate() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		private void handleRegister() {
+			// TODO Auto-generated method stub
+			
 		}
 
 	}
 
 	private class ClientWrite implements Runnable {
-		private int data;
+		private Packet p;
 
-		public ClientWrite(int data) {
-			this.data = data;
+		public ClientWrite(Packet p) {
+			this.p = p;
 		}
 
 		@Override
 		public void run() {
 			synchronized (this.getClient().output) {
 				try {
-					this.getClient().output.writeInt(this.data);
+					this.getClient().output.writeObject(p.getData());
 				} catch (SocketException e) {
 					// Ignore client has just disconnected
 				} catch (IOException e) {
