@@ -7,8 +7,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 
+import com.sun.xml.internal.bind.v2.runtime.reflect.Lister.Pack;
+
 import engine.GameObj;
 import engine.Player;
+import engine.Rectangles;
 import processing.core.PApplet;
 
 // From http://tutorials.jenkov.com/java-multithreaded-servers/thread-pooled-server.html
@@ -20,17 +23,19 @@ public class Server extends PApplet implements Runnable {
 	protected CopyOnWriteArrayList<Client> clients;
 	protected ConcurrentLinkedQueue<Packet> packetQueue;
 	private Client localClient;
+	private PApplet inst;
 
 	protected int serverPort = 9000;
 	protected boolean isStopped = false;
 	private ExecutorService threadPool;
 
-	public Server(int port, ExecutorService threadPool, Player player) {
+	public Server(PApplet inst, int port, ExecutorService threadPool, Player player) {
+		this.inst = inst;
 		this.serverPort = port;
 		this.threadPool = threadPool;
 		this.clients = new CopyOnWriteArrayList<Client>();
 		this.packetQueue = new ConcurrentLinkedQueue<Packet>();
-		this.localClient = new Client(threadPool, player);
+		this.localClient = new Client(this.inst, threadPool, player);
 	}
 
 	@Override
@@ -49,14 +54,25 @@ public class Server extends PApplet implements Runnable {
 				}
 				throw new RuntimeException("Error accepting client connection" + e);
 			}
-			GameObj playerCopy = this.localClient.getPlayer();
+			Player playerCopy = this.localClient.getPlayer();
 			Random r = new Random();
-			playerCopy.getShape().setFill(color(r.nextInt(255), r.nextInt(255), r.nextInt(255)));
+			playerCopy.getRend().getShape().setFill(color(r.nextInt(255), r.nextInt(255), r.nextInt(255)));
 			
-			Client client = new Client(clientSocket, this.threadPool, new Player(playerCopy.getShape(),
+			Client client = new Client(this.inst, clientSocket, this.threadPool, new Player(inst, playerCopy.getDim(),
 					playerCopy.getPy().getLocation().x, playerCopy.getPy().getLocation().y));
 
-			Packet p = new Packet(Packet.PACKET_REGISTER, client.getPlayer());
+			for (GameObj obj : Rectangles.objects) {
+				Packet p = new Packet(Packet.PACKET_CREATE, obj);
+				client.write(p);
+			}
+			Packet p = new Packet(Packet.PACKET_CREATE, client.getPlayer());
+			for (Client c : this.clients) {
+				c.write(p);
+			}
+			Rectangles.objectMap.put(client.getPlayer().getUUID(), client.getPlayer());
+			Rectangles.objects.add(client.getPlayer());
+			Rectangles.movObjects.add(client.getPlayer());
+			p = new Packet(Packet.PACKET_REGISTER, client.getPlayer());
 			client.write(p);
 			synchronized (this.clients) {
 				this.clients.add(client);
@@ -114,12 +130,10 @@ public class Server extends PApplet implements Runnable {
 
 		@Override
 		public void run() {
-			synchronized (packetQueue) {
-				while (!packetQueue.isEmpty()) {
-					Packet p = packetQueue.remove();
-					for (Client client : this.clients) {
-						client.write(p);
-					}
+			for (GameObj obj : Rectangles.movObjects) {
+				Packet p = new Packet(Packet.PACKET_UPDATE, obj);
+				for (Client client : this.clients) {
+					client.write(p);
 				}
 			}
 		}

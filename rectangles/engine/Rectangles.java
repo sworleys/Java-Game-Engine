@@ -21,7 +21,11 @@ import processing.core.PVector;
 public class Rectangles extends PApplet {
 
 	public static final int NUM_THREADS = 5;
-
+	public static CopyOnWriteArrayList<GameObj> objects = new CopyOnWriteArrayList<GameObj>();
+	public static CopyOnWriteArrayList<GameObj> movObjects = new CopyOnWriteArrayList<GameObj>();
+	public static ConcurrentHashMap<UUID, GameObj> objectMap = new ConcurrentHashMap<UUID, GameObj>();
+	public static Player player;
+	
 	private boolean isServer;
 	private Server server;
 	private Client localClient;
@@ -29,12 +33,9 @@ public class Rectangles extends PApplet {
 	private GameObj ceiling;
 	private GameObj leftWall;
 	private GameObj rightWall;
-	private Player player;
 
 	private ExecutorService threadPool = Executors.newFixedThreadPool(NUM_THREADS);
-	private CopyOnWriteArrayList<GameObj> objects = new CopyOnWriteArrayList<GameObj>();
-	private CopyOnWriteArrayList<GameObj> movObjects = new CopyOnWriteArrayList<GameObj>();
-	private ConcurrentHashMap<UUID, GameObj> objectMap = new ConcurrentHashMap<UUID, GameObj>();
+
 	
 	public Rectangles(boolean isServer) {
 		this.isServer = isServer;
@@ -55,54 +56,43 @@ public class Rectangles extends PApplet {
 		if (this.isServer) {
 			// Player
 			float sqrDim = 50;
-			PShape sqr = createShape(RECT, 0, 0, sqrDim, sqrDim);
-			sqr.setFill(color(random(255), random(255), random(255)));
-			sqr.setStroke(false);
-			this.player = new Player(sqr, height - sqrDim  - 2, 1);
-			this.objects.add(this.player);
-			this.objectMap.put(this.player.getUUID(), this.player);
-			this.movObjects.add(this.player);
+			player = new Player(this, sqrDim, height - sqrDim  - 2, 1);
 
-			this.server = new Server(9200, this.threadPool, this.player);
+			this.server = new Server(this, 9200, this.threadPool, player);
 			this.localClient = this.server.getLocalClient();
 			new Thread(this.server).start();
 			
-			this.server.newPacket(Packet.PACKET_CREATE, this.player);
+			this.server.newPacket(Packet.PACKET_CREATE, player);
 
 
 			// Add screen boundaries
-			this.floor = new Boundary(width, (float) 100, 0, 0, height, null, true, false);
-			this.ceiling = new Boundary(width, (float) 100, 0, 0, -100, null, false, false);
-			this.leftWall = new Boundary((float) 100, height, 0, -100, 0, null, false, false);
-			this.rightWall = new Boundary((float) 100, height, width, width, 0, null, false, false);
+			this.floor = new Boundary(width, (float) 100, 0, height, true);
+			this.ceiling = new Boundary(width, (float) 100, 0, -100, false);
+			this.leftWall = new Boundary((float) 100, height, -100, 0, false);
+			this.rightWall = new Boundary((float) 100, height, width, 0, false);
 
-			this.objects.add(this.floor);
-			this.objectMap.put(this.floor.getUUID(), this.floor);
+			objects.add(this.floor);
+			objectMap.put(this.floor.getUUID(), this.floor);
 			this.server.newPacket(Packet.PACKET_CREATE, this.floor);
 			
-			this.objects.add(this.ceiling);
-			this.objectMap.put(this.ceiling.getUUID(), this.ceiling);
+			objects.add(this.ceiling);
+			objectMap.put(this.ceiling.getUUID(), this.ceiling);
 			this.server.newPacket(Packet.PACKET_CREATE, this.ceiling);
 
-			this.objects.add(this.leftWall);
-			this.objectMap.put(this.leftWall.getUUID(), this.leftWall);
+			objects.add(this.leftWall);
+			objectMap.put(this.leftWall.getUUID(), this.leftWall);
 			this.server.newPacket(Packet.PACKET_CREATE, this.leftWall);
 
-			this.objects.add(this.rightWall);
-			this.objectMap.put(this.rightWall.getUUID(), this.rightWall);
+			objects.add(this.rightWall);
+			objectMap.put(this.rightWall.getUUID(), this.rightWall);
 			this.server.newPacket(Packet.PACKET_CREATE, this.rightWall);
 
 
 
 
 			// Platforms
-			PShape platformStatic = createShape(RECT, 0, 0, width / 5, 25);
-			platformStatic.setFill(color(random(255), random(255), random(255)));
-			platformStatic.setStroke(false);
-
-			PShape platformMov = createShape(RECT, 0, 0, width / 5, 25);
-			platformMov.setFill(color(random(255), random(255), random(255)));
-			platformMov.setStroke(false);
+			float pWidth = width / 5;
+			float pHeight = 25;
 
 			ArrayList<Platform> staticPlatforms = new ArrayList<Platform>();
 			ArrayList<Platform> movPlatforms = new ArrayList<Platform>();
@@ -112,36 +102,36 @@ public class Rectangles extends PApplet {
 				p.getPy().setVelocity(new PVector(5, 0));
 			}
 
-			Platform static_1 = new Platform(platformStatic, false, width - platformStatic.getWidth(), 100);
-			Platform static_2 = new Platform(platformStatic, false, platformStatic.getWidth(), 100);
-
+			Platform static_1 = new Platform(this, pWidth, pHeight, width - pWidth, 100, false);
+			Platform static_2 = new Platform(this, pWidth, pHeight, pWidth, 100, false);
+			
 			staticPlatforms.add(static_1);
 			staticPlatforms.add(static_2);
 
-			Platform mov_1 = new Platform(platformStatic, false, width - platformStatic.getWidth(), 300);
-			Platform mov_2 = new Platform(platformStatic, false, platformStatic.getWidth(), 300);
+			Platform mov_1 = new Platform(this, pWidth, pHeight, width - pWidth, 300, false);
+			Platform mov_2 = new Platform(this, pWidth, pHeight, pWidth, 300, false);
 
 			movPlatforms.add(mov_1);
 			movPlatforms.add(mov_2);
 
 			for (Platform p : staticPlatforms) {
-				this.objects.add(p);
-				this.objectMap.put(p.getUUID(), p);
+				objects.add(p);
+				objectMap.put(p.getUUID(), p);
 				this.server.newPacket(Packet.PACKET_CREATE, p);
 
 			}
 			
 			for (Platform p : movPlatforms) {
-				this.objects.add(p);
-				this.objectMap.put(p.getUUID(), p);
-				this.movObjects.add(p);
+				objects.add(p);
+				objectMap.put(p.getUUID(), p);
+				movObjects.add(p);
 				this.server.newPacket(Packet.PACKET_CREATE, p);
 			}
 
 	
 		} else {
 			try {
-				this.localClient = new Client(new Socket("127.0.0.1", 9200), this.threadPool, null);
+				this.localClient = new Client(this, new Socket("127.0.0.1", 9200), this.threadPool, null);
 			} catch (IOException e) {
 				System.out.println("Error opening local client socket");
 				e.printStackTrace();
@@ -154,20 +144,22 @@ public class Rectangles extends PApplet {
 	public void draw() {
 		background(0);
 
-		this.renderAll(this.objects);
+		this.renderAll(objects);
 
 
 		// Dummy Renderer?
 		if (isServer) {
 			// Update physics
 			for (GameObj obj : movObjects) {
-				obj.getPy().update(obj, this.objects);
+				obj.getPy().update(obj, objects);
 			}
 		}
 		
-		// Only run update to clients 3fps?
-		if (this.isServer && (frameCount % 20 == 0)) {
-			this.server.updateClients();
+		// Only run update to clients 30fps?
+		if (frameCount % 1 == 0) {
+			if (this.isServer) {
+				this.server.updateClients();
+			}
 		}
 
 	}
@@ -183,7 +175,7 @@ public class Rectangles extends PApplet {
 			rect((float) obj.getPy().getBounds2D().getX(), (float) obj.getPy().getBounds2D().getY(),
 					(float) obj.getPy().getBounds2D().getWidth(), (float) obj.getPy().getBounds2D().getHeight());
 		} else {
-			shape(obj.getShape(), obj.getPy().getLocation().x, obj.getPy().getLocation().y);
+			shape(obj.getRend().getShape(), obj.getPy().getLocation().x, obj.getPy().getLocation().y);
 		}
 	}
 
@@ -199,17 +191,39 @@ public class Rectangles extends PApplet {
 	public void keyPressed() {
 		if (key == CODED) {
 			if (keyCode == LEFT) {
-				this.localClient.getPlayer().getPy().setAccelerationX(-5);
+				if (this.isServer) {
+					player.getPy().setAccelerationX(-5);
+				} else {
+					Packet p = new Packet(keyCode, player.getUUID());
+					this.localClient.write(p);
+				}
 			}
 			if (keyCode == RIGHT) {
-				this.localClient.getPlayer().getPy().setAccelerationX(5);
+				if (this.isServer) {
+					player.getPy().setAccelerationX(5);
+				} else {
+					Packet p = new Packet(keyCode, player.getUUID());
+					this.localClient.write(p);
+				}
 			}
 		}
 		if (key == ' ') {
-			this.localClient.getPlayer().getPy().setAccelerationY(-20);
+			if (this.isServer) {
+				player.getPy().setAccelerationY(-20);
+			} else {
+				Packet p = new Packet(keyCode, player.getUUID());
+				this.localClient.write(p);
+			}
 		}
 	}
-
+	
+	public static void setPlayer(Player p) {
+		player = p;
+		objectMap.put(player.getUUID(), player);
+		objects.add(player);
+		movObjects.add(player);
+	}
+	
 	// API stuff from https://happycoding.io/tutorials/java/processing-in-java
 
 	public static void main(String[] args) {
@@ -222,4 +236,5 @@ public class Rectangles extends PApplet {
 		}
 		PApplet.runSketch(processingArgs, sketch);
 	}
+
 }
