@@ -34,6 +34,7 @@ public class Rectangles extends PApplet implements Serializable {
 	public static Random generator = new Random();
 	public static int deathPoints = 0;
 	public static int perfIter = 0;
+	public static final int MOV_OBJECTS = 1000;
 
 	
 	public static Player player;
@@ -131,23 +132,23 @@ public class Rectangles extends PApplet implements Serializable {
 
 			
 			staticPlatforms.add(static_1);
+			
+			for (int i=1; i <= MOV_OBJECTS; i++) {
+				Platform mov = new Platform(this, pWidth, pHeight, width - 3*pWidth, generator.nextInt(320), false);
+				movPlatforms.add(mov);
+			}
 
-			Platform mov_1 = new Platform(this, pWidth, pHeight, width - 3*pWidth, 150, false);
-			Platform mov_2 = new Platform(this, pWidth, pHeight, width - 5*pWidth, 250, false);
+			//Platform mov_1 = new Platform(this, pWidth, pHeight, width - 3*pWidth, 150, false);
+			//Platform mov_2 = new Platform(this, pWidth, pHeight, width - 5*pWidth, 250, false);
 
 
-			movPlatforms.add(mov_1);
-			movPlatforms.add(mov_2);
+			//movPlatforms.add(mov_1);
+			//movPlatforms.add(mov_2);
 
 			for (Platform p : movPlatforms) {
-				p.getPy().setTopSpeed(2);
-				p.getPy().setVelocity(new PVector(2, 0));
+				p.getPy().setTopSpeed(10);
+				p.getPy().setVelocity(new PVector(generator.nextInt(11), 0));
 			}
-			
-			Platform mov_3 = new Platform(this, pWidth, pHeight, 0, 100, false);
-			mov_3.getPy().setTopSpeed(2);
-			mov_3.getPy().setVelocity(new PVector(0, 2));
-			movPlatforms.add(mov_3);
 
 
 			for (Platform p : staticPlatforms) {

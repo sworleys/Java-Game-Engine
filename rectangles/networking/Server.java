@@ -85,7 +85,7 @@ public class Server extends PApplet implements Runnable, Serializable {
 			client.write(p);
 			synchronized (this.clients) {
 				this.clients.add(client);
-				if (this.clients.size() == 2 ) {
+				if (this.clients.size() == 3 ) {
 					this.startTime = System.nanoTime();
 					this.perfStarted = true;
 					System.out.println("Time Started");
