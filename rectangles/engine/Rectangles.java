@@ -33,6 +33,7 @@ public class Rectangles extends PApplet implements Serializable {
 	public static Spawn[] spawnPoints = new Spawn[2];
 	public static Random generator = new Random();
 	public static int deathPoints = 0;
+	public static int perfIter = 0;
 
 	
 	public static Player player;
@@ -50,7 +51,6 @@ public class Rectangles extends PApplet implements Serializable {
 	
 	public Rectangles(boolean isServer) {
 		this.isServer = isServer;
-		System.out.println("Server: " + this.isServer);
 	}
 	
 	public void settings() {
@@ -179,6 +179,7 @@ public class Rectangles extends PApplet implements Serializable {
 
 	public void draw() {
 		background(0);
+		
 		if (this.isServer) {
 			text("Deaths: " + deathPoints , 110, 40);
 		}
@@ -200,7 +201,13 @@ public class Rectangles extends PApplet implements Serializable {
 				this.server.updateClients();
 			}
 		}
-
+		
+		if (this.isServer && this.server.perfStarted) {
+			perfIter++;
+			if (perfIter >= 1000) {
+				exit();
+			}
+		}
 	}
 
 	private void renderAll(CopyOnWriteArrayList<GameObj> objects) {

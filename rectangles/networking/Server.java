@@ -23,6 +23,8 @@ public class Server extends PApplet implements Runnable, Serializable {
 	/**
 	 * 
 	 */
+	public long startTime = 0;
+	public boolean perfStarted = false;
 	private static final long serialVersionUID = 1L;
 	protected ServerSocket serverSocket;
 	protected Thread runningThread;
@@ -30,6 +32,7 @@ public class Server extends PApplet implements Runnable, Serializable {
 	protected ConcurrentLinkedQueue<Packet> packetQueue;
 	private Client localClient;
 	private PApplet inst;
+
 
 	protected int serverPort = 9000;
 	protected boolean isStopped = false;
@@ -82,13 +85,18 @@ public class Server extends PApplet implements Runnable, Serializable {
 			client.write(p);
 			synchronized (this.clients) {
 				this.clients.add(client);
+				if (this.clients.size() == 2 ) {
+					this.startTime = System.nanoTime();
+					this.perfStarted = true;
+					System.out.println("Time Started");
+				}
 			}
 			new Thread(client).start();
 		}
-		System.out.println("Server Stopped");
 	}
 
 	public synchronized void stop() {
+		System.out.println("Time: " + (System.nanoTime() - this.startTime));
 		this.isStopped = true;
 		for (Client client : clients) {
 			client.stop();
