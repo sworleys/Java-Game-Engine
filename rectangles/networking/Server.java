@@ -19,6 +19,9 @@ import processing.core.PApplet;
 
 public class Server extends PApplet implements Runnable {
 
+	public long startTime = 0;
+	public boolean perfStarted = false;
+
 	protected ServerSocket serverSocket;
 	protected Thread runningThread;
 	protected CopyOnWriteArrayList<Client> clients;
@@ -77,13 +80,18 @@ public class Server extends PApplet implements Runnable {
 			client.write(p);
 			synchronized (this.clients) {
 				this.clients.add(client);
+				if (this.clients.size() == 3 ) {
+					this.startTime = System.nanoTime();
+					this.perfStarted = true;
+					System.out.println("Time Started");
+				}
 			}
 			new Thread(client).start();
 		}
-		System.out.println("Server Stopped");
 	}
 
 	public synchronized void stop() {
+		System.out.println("Time: " + (System.nanoTime() - this.startTime));
 		this.isStopped = true;
 		for (Client client : clients) {
 			client.stop();
