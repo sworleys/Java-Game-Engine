@@ -1,11 +1,12 @@
 package engine;
 
+import java.util.HashMap;
+
 import processing.core.PApplet;
 import processing.core.PShape;
 
 public class Platform extends GameObj {
 	private boolean movable;
-	private PApplet inst;
 
 	public Platform(PApplet inst, float width, float height, float x, float y, boolean movable) {
 		super(width, height, 0, x, y, false, false);
@@ -15,6 +16,14 @@ public class Platform extends GameObj {
 		this.rend = new Renderable(inst, color, PShape.RECT, width, height);
 	}
 
+	public Platform(PApplet inst, HashMap<String, Object> data) {
+		super((float) data.get("width"), (float) data.get("height"), 0,
+				(float) data.get("x"), (float) data.get("y"), false, false);
+		this.movable = (boolean) data.get("movable");
+		int[] color = {(int) random(255), (int) random(255), (int) random(255)};
+		this.rend = new Renderable(inst, color, PShape.RECT, (float) data.get("width"),
+				(float) data.get("height"));
+	}
 	@Override
 	public String getType() {
 		return "platform";

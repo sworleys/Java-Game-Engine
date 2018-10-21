@@ -1,11 +1,17 @@
 package engine;
 
+import java.util.HashMap;
+
 import processing.core.PApplet;
 
 public class DeathZone extends GameObj {
 
 	public DeathZone(PApplet inst, float x, float y) {
 		super(100, 100, 0, x, y, false, false);
+	}
+
+	public DeathZone(HashMap<String, Object> data) {
+		super(100, 100, 0, (float) data.get("x"), (float) data.get("y"), false, false);
 	}
 
 	@Override

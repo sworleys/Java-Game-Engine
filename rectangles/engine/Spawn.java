@@ -1,5 +1,7 @@
 package engine;
 
+import java.util.HashMap;
+
 import processing.core.PApplet;
 import processing.core.PShape;
 
@@ -7,6 +9,10 @@ public class Spawn extends GameObj {
 
 	public Spawn(PApplet inst, float x, float y) {
 		super(0, 0, 0, x, y, false, false);
+	}
+
+	public Spawn(HashMap<String, Object> data) {
+		super(0, 0, 0, (float) data.get("x"), (float) data.get("y"), false, false);
 	}
 
 	@Override

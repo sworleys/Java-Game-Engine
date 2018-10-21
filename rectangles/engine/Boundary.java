@@ -1,9 +1,17 @@
 package engine;
 
+import java.util.HashMap;
+
 public class Boundary extends GameObj{
 
 	public Boundary(float objWidth, float objHeight, float x, float y, boolean isFloor) {
 		super(objWidth, objHeight, 0, x, y, isFloor, false);
+	}
+
+	public Boundary(HashMap<String, Object> data) {
+		super((float) data.get("width"), (float) data.get("height"), 0,
+				(float) data.get("x"), (float) data.get("y"),
+				(boolean) data.get("isFloor"), false);
 	}
 
 	@Override

@@ -5,13 +5,19 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import processing.core.PApplet;
 import processing.core.PVector;
 
-public class Physics extends PApplet implements Shape {
+public class Physics extends PApplet implements Shape, Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	private static final float GRAV = (float) 0.8;
 
 	// Vector code inspired by processing tutorial 'acceleration with vectors'

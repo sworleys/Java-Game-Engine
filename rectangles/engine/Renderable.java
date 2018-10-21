@@ -1,10 +1,16 @@
 package engine;
 
+import java.io.Serializable;
+
 import processing.core.PApplet;
 import processing.core.PConstants;
 import processing.core.PShape;
 
-public class Renderable {
+public class Renderable implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private PShape shape;
 	private int[] color;
 	private int type;

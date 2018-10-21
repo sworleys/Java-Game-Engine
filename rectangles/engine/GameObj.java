@@ -1,11 +1,16 @@
 package engine;
 
 
+import java.io.Serializable;
 import java.util.UUID;
 
 import processing.core.PApplet;
 
-public abstract class GameObj extends PApplet {
+public abstract class GameObj extends PApplet implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	protected Physics py;
 	protected Renderable rend;
 	private float objWidth;

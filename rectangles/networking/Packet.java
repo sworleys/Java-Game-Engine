@@ -1,5 +1,7 @@
 package networking;
 
+import java.awt.Rectangle;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -13,7 +15,11 @@ import engine.Spawn;
 import processing.core.PApplet;
 import processing.core.PConstants;
 
-public class Packet {
+public class Packet implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	public static final int PACKET_REGISTER = 0;
 	public static final int PACKET_CREATE = 1;
 	public static final int PACKET_UPDATE = 2;
@@ -23,14 +29,10 @@ public class Packet {
 	private int type = -1;
 	private UUID uuid;
 	private HashMap<String, Object> data;
-	private GameObj obj;
 	private float[] location;
-	private PApplet inst;
 	private int keyPress;
 
 	public Packet(int type, GameObj obj) {
-		this.inst = inst;
-		this.obj = obj;
 		this.type = type;
 		this.uuid = obj.getUUID();
 		this.data = new HashMap<>();
@@ -91,13 +93,17 @@ public class Packet {
 		
 		switch(obj.getType()) {
 		case("player"):
-			this.data.put("shape", obj.getRend().getShape());
+			this.data.put("dim", ((Player) obj).getDim());
 			break;
 		case("platform"):
-			this.data.put("shape", obj.getRend().getShape());
 			this.data.put("movable", ((Platform) obj).isMovable());
+			this.data.put("width", ((Platform) obj).getObjWidth());
+			this.data.put("height", ((Platform) obj).getObjHeight());
 			break;
 		case("boundary"):
+			this.data.put("width", ((Boundary) obj).getObjWidth());
+			this.data.put("height", ((Boundary) obj).getObjHeight());
+			this.data.put("isFloor", ((Boundary) obj).isFloor());
 			break;
 		default:
 			break;
@@ -114,144 +120,79 @@ public class Packet {
 		this.data.put("uuid", this.uuid);
 		return this.data;
 	}
-	
-	public String getSerialData() {
-		String serial = 
-				"type:" + this.type + ","
-				+ "uuid:" + this.uuid.toString() + "|";
-		
-		switch (this.type) {
-		case (PACKET_REGISTER):
-		case (PACKET_CREATE):
-			serial = serial + "object_type:" + this.data.get("object_type") + "|"
-					+ obj.toSerial();
-			break;
-		case (PACKET_DESTROY):
-			// Do nothing
-			// Just need type and UUID
-			break;
-		case (PACKET_UPDATE):
-			serial = serial + "x:" + this.obj.getPy().getLocation().x + ","
-					+ "y:" + this.obj.getPy().getLocation().y;
-			break;
-		case(PACKET_KEY_PRESS):
-			serial = serial + "key:" + this.keyPress;
-			break;
-		default:
-			break;
-		}
-		
-		return serial;
-	}
-	
-	public Packet(PApplet inst, String serial) {
-		this.inst = inst;
-		String[] serialData = serial.split("\\|");
-		String[] pData = serialData[0].split(",");
-		for (String d : pData) {
-			String[] subData = d.split(":");
-			String key = subData[0];
-			String value = subData[1];
-			
-			switch(key) {
-			case("type"):
-				this.type = Integer.parseInt(value);
-				break;
-			case("uuid"):
-				this.uuid = UUID.fromString(value);
-				break;
-			default:
-				break;
-			}
-		}
-		
+
+
+	public void handlePacket(PApplet inst) {
 		if (this.type == -1) {
 			System.out.println("Type not found in serial packet");
 			return;
 		}
 		
+		GameObj obj = null;
+
 		switch (this.type) {
 		// Same as create
 		case (PACKET_REGISTER):
 		case (PACKET_CREATE):
-			String objectType = serialData[1].split(":")[1];
-			String objectSerial = serialData[2];
+			String objectType = (String) this.data.get("object_type");
 
 			switch (objectType) {
 			case ("player"):
-				this.obj = Player.deSerial(this.inst, objectSerial);
-				Rectangles.movObjects.add(this.obj);
+				obj = new Player(inst, this.data);
+				Rectangles.movObjects.add(obj);
 				if(this.type == PACKET_REGISTER) {
-					Rectangles.player = (Player) this.obj;
+					Rectangles.player = (Player) obj;
 				}
 				break;
 			case ("platform"):
-				this.obj = Platform.deSerial(this.inst, objectSerial);
-				if (((Platform)this.obj).isMovable()) {
-					Rectangles.movObjects.add(this.obj);
+				obj = new Platform(inst, this.data);
+				if (((Platform) obj).isMovable()) {
+					Rectangles.movObjects.add(obj);
 				}
 				break;
 			case ("boundary"):
-				this.obj = Boundary.deSerial(objectSerial);
+				obj = new Boundary(this.data);
 				break;
 			case("spawn"):
-				this.obj = Spawn.deSerial(inst, objectSerial);
+				obj = new Spawn(this.data);
 			case("death-zone"):
-				this.obj = DeathZone.deSerial(inst, objectSerial);
+				obj = new DeathZone(this.data);
 			default:
 				break;
 			}
-			this.obj.setUUID(this.uuid);
-			Rectangles.objectMap.put(this.obj.getUUID(), this.obj);
-			Rectangles.objects.add(this.obj);
+			if (obj != null) {
+				obj.setUUID(this.uuid);
+				Rectangles.objectMap.put(obj.getUUID(), obj);
+				Rectangles.objects.add(obj);
+			}
 
 
 			break;
 		case (PACKET_DESTROY):
 			Rectangles.objectMap.remove(this.uuid);
-			for (GameObj obj : Rectangles.objects) {
-				if (obj.getUUID().equals(this.uuid)) {
+			for (GameObj o : Rectangles.objects) {
+				if (o.getUUID().equals(this.uuid)) {
 					Rectangles.objects.remove(obj);
 					break;
 				}
 			}
-			for (GameObj obj : Rectangles.movObjects) {
-				if (obj.getUUID().equals(this.uuid)) {
+			for (GameObj o : Rectangles.movObjects) {
+				if (o.getUUID().equals(this.uuid)) {
 					Rectangles.movObjects.remove(obj);
 					break;
 				}
 			}
 			break;
 		case (PACKET_UPDATE):
-			String locationData = serialData[1];
-			this.location = new float[2];
-			for (String d : locationData.split(",")) {
-				String[] subData = d.split(":");
-				String key = subData[0];
-				String value = subData[1];
-
-				switch (key) {
-				case ("x"):
-					this.location[0] = Float.parseFloat(value);
-					break;
-				case ("y"):
-					this.location[1] = Float.parseFloat(value);
-					break;
-				default:
-					break;
-				}
-			}
-			Rectangles.objectMap.get(this.uuid).getPy().getLocation()
-				.set(this.location[0], this.location[1]);
+			Rectangles.objectMap.get(this.uuid).getPy().getLocation().set((float) data.get("x"), (float) data.get("y"));
 			break;
 		case (PACKET_KEY_PRESS):
-			this.keyPress = Integer.parseInt(serialData[1].split(":")[1]);
-				if (this.keyPress == PConstants.LEFT) {
-					Rectangles.objectMap.get(this.uuid).getPy().setAccelerationX(-5);
-				}
-				if (this.keyPress == PConstants.RIGHT) {
-					Rectangles.objectMap.get(this.uuid).getPy().setAccelerationX(5);
-				}
+			if (this.keyPress == PConstants.LEFT) {
+				Rectangles.objectMap.get(this.uuid).getPy().setAccelerationX(-5);
+			}
+			if (this.keyPress == PConstants.RIGHT) {
+				Rectangles.objectMap.get(this.uuid).getPy().setAccelerationX(5);
+			}
 			if (this.keyPress == ' ') {
 				Rectangles.objectMap.get(this.uuid).getPy().setAccelerationY(-20);
 			}
@@ -259,9 +200,8 @@ public class Packet {
 		default:
 			break;
 		}
-		
 	}
-
+	
 	public int getType() {
 		return type;
 	}

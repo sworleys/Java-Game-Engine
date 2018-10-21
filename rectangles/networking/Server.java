@@ -1,5 +1,6 @@
 package networking;
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Random;
@@ -17,8 +18,12 @@ import processing.core.PApplet;
 
 // From http://tutorials.jenkov.com/java-multithreaded-servers/thread-pooled-server.html
 
-public class Server extends PApplet implements Runnable {
+public class Server extends PApplet implements Runnable, Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	protected ServerSocket serverSocket;
 	protected Thread runningThread;
 	protected CopyOnWriteArrayList<Client> clients;

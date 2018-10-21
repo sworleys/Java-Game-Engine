@@ -16,6 +16,14 @@ public class Player extends GameObj {
 		this.rend = new Renderable(inst, color, PShape.RECT, dim, dim);
 	}
 	
+	public Player(PApplet inst, HashMap<String, Object> data) {
+		super((float) data.get("dim"), (float) data.get("dim"), 0,
+				(float) data.get("x"), (float) data.get("y"), false, true);
+		this.dim = (float) data.get("dim");
+		int[] color = {(int) random(255), (int) random(255), (int) random(255)};
+		this.rend = new Renderable(inst, color, PShape.RECT, this.dim, this.dim);
+	}
+
 	@Override
 	public String getType() {
 		return "player";

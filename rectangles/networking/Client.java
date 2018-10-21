@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.HashMap;
@@ -25,8 +26,8 @@ public class Client implements Runnable {
 	public AtomicBoolean isUpdate = new AtomicBoolean(false);
 	
 	private Socket socket;
-	private DataInputStream input;
-	private DataOutputStream output;
+	private ObjectInputStream input;
+	private ObjectOutputStream output;
 	private boolean isStopped;
 	private ExecutorService threadPool;
 	private ConcurrentHashMap<UUID, GameObj> state;
@@ -53,15 +54,15 @@ public class Client implements Runnable {
 		this.state = new ConcurrentHashMap<>();
 		this.threadPool = threadPool;
 		try {
-			this.input = new DataInputStream(this.getSocket().getInputStream());
+			this.output = new ObjectOutputStream(this.getSocket().getOutputStream());
 		} catch (IOException e) {
-			System.out.println("Error opening input stream for socket: " + this.socket.toString());
+			System.out.println("Error opening output stream for socket: " + this.socket.toString());
 			e.printStackTrace();
 		}
 		try {
-			this.output = new DataOutputStream(this.getSocket().getOutputStream());
+			this.input = new ObjectInputStream(this.getSocket().getInputStream());
 		} catch (IOException e) {
-			System.out.println("Error opening output stream for socket: " + this.socket.toString());
+			System.out.println("Error opening input stream for socket: " + this.socket.toString());
 			e.printStackTrace();
 		}
 	}
@@ -104,11 +105,14 @@ public class Client implements Runnable {
 				// TODO: Just keeping track of a number for now
 				synchronized (this.input) {
 					try {
-						String recv = this.input.readUTF();
+						Object recv = this.input.readObject();
 						//System.out.println("Received: " + recv);
 						this.threadPool.execute(new ClientRead(recv, this));
 					} catch (EOFException | SocketException e) {
 						// Ignore, client has just disconnected 
+					} catch (ClassNotFoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
 				}
 			} catch (IOException e) {
@@ -121,18 +125,6 @@ public class Client implements Runnable {
 	public synchronized void stop() {
 		this.isStopped = true;
 		try {
-			Packet p = new Packet(Packet.PACKET_DESTROY, Rectangles.player);
-			synchronized (this.output) {
-				try {
-					//System.out.println("Sent: " + p.getSerialData());
-					this.output.writeUTF(p.getSerialData());
-				} catch (SocketException e) {
-					// Ignore client has just disconnected
-				} catch (IOException e) {
-					System.out.println("Error writing to socket: " + this.socket.toString());
-					e.printStackTrace();
-				}
-			}
 			this.socket.close();
 		} catch (IOException e) {
 			throw new RuntimeException("Error closing client socket", e);
@@ -156,9 +148,9 @@ public class Client implements Runnable {
 	private class ClientRead implements Runnable {
 		private Packet p;
 		private Client client;
-		private String recv;
+		private Object recv;
 
-		public ClientRead(String recv, Client client) {
+		public ClientRead(Object recv, Client client) {
 			this.recv = recv;
 			this.client = client;
 		}
@@ -166,11 +158,16 @@ public class Client implements Runnable {
 		@Override
 		public void run() {
 			// Just force processing
-			this.p = new Packet(this.client.inst, this.recv);
+			this.p = (Packet) this.recv;
+			this.p.handlePacket(this.client.inst);
 		}
 	}
 
-	private class ClientWrite implements Runnable {
+	private class ClientWrite implements Runnable, Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		private Packet p;
 
 		public ClientWrite(Packet p) {
@@ -182,7 +179,8 @@ public class Client implements Runnable {
 			synchronized (this.getClient().output) {
 				try {
 					//System.out.println("Sent: " + p.getSerialData());
-					this.getClient().output.writeUTF(p.getSerialData());
+					this.getClient().output.writeObject(p);
+					this.getClient().output.flush();
 				} catch (SocketException e) {
 					// Ignore client has just disconnected
 				} catch (IOException e) {

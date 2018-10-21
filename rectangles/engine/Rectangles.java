@@ -1,6 +1,7 @@
 package engine;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Random;
@@ -19,8 +20,12 @@ import processing.core.PVector;
 
 
 
-public class Rectangles extends PApplet {
+public class Rectangles extends PApplet implements Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	public static final int NUM_THREADS = 5;
 	public static CopyOnWriteArrayList<GameObj> objects = new CopyOnWriteArrayList<GameObj>();
 	public static CopyOnWriteArrayList<GameObj> movObjects = new CopyOnWriteArrayList<GameObj>();
