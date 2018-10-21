@@ -41,16 +41,41 @@ public class Physics extends PApplet implements Shape {
 
 	public PVector update(GameObj caller, CopyOnWriteArrayList<GameObj> objects) {
 		//this.acceleration.setMag(0.2);
-
+		
 		for (GameObj obj : objects) {
 			if (this.intersects(obj.getPy().getBounds2D()) && !obj.getUUID().equals(caller.getUUID())) {
-				if (obj.isFloor()) {
-					this.velocity.y = (float) -1;
-					this.acceleration.mult(0);
+				if (caller.getType().equals("platform")) {
+					if (obj.getType().equals("boundary")) {
+						this.velocity.mult(-1);
+					}
 				} else {
-					this.velocity.mult(-1);
+					if (obj.isFloor()) {
+						this.velocity.y = (float) -1;
+					} else {
+						switch (obj.getType()) {
+						case ("player"):
+							// Do nothing, clip-less
+							break;
+						case("platform"):
+							this.acceleration.mult((float) -1);
+							if (this.velocity.y > 0) {
+								this.velocity.y = (float) 0;
+							} else {
+								this.velocity.y = (float) -1;
+								this.velocity.x = (float) 0;
+							}
+							break;
+						case("death-zone"):
+							Spawn s = Rectangles.spawnPoints[Rectangles.generator.nextInt(2)];
+							this.location.set(s.getPy().getLocation().x, s.getPy().getLocation().y);
+							Rectangles.deathPoints++;
+							break;
+						default:
+							this.velocity.mult((float) -1);
+							break;
+						}
+					}
 				}
-				break;
 			}
 		}
 
@@ -59,8 +84,9 @@ public class Physics extends PApplet implements Shape {
 		this.location.add(this.velocity);
 
 		// Reset acceleration?
-		this.acceleration = new PVector(0, GRAV);
-		
+		if (this.isGrav) {
+			this.acceleration = new PVector(0, GRAV);
+		}
 		return this.location;
 	}
 	

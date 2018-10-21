@@ -10,7 +10,7 @@ public class Player extends GameObj {
 	private float dim;
 	
 	public Player(PApplet inst, float dim, float x, float y) {
-		super(dim, dim, 0, x, y, false, false);
+		super(dim, dim, 0, x, y, false, true);
 		this.dim = dim;
 		int[] color = {(int) random(255), (int) random(255), (int) random(255)};
 		this.rend = new Renderable(inst, color, PShape.RECT, dim, dim);

@@ -3,6 +3,7 @@ package engine;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -24,6 +25,11 @@ public class Rectangles extends PApplet {
 	public static CopyOnWriteArrayList<GameObj> objects = new CopyOnWriteArrayList<GameObj>();
 	public static CopyOnWriteArrayList<GameObj> movObjects = new CopyOnWriteArrayList<GameObj>();
 	public static ConcurrentHashMap<UUID, GameObj> objectMap = new ConcurrentHashMap<UUID, GameObj>();
+	public static Spawn[] spawnPoints = new Spawn[2];
+	public static Random generator = new Random();
+	public static int deathPoints = 0;
+
+	
 	public static Player player;
 	
 	private boolean isServer;
@@ -54,9 +60,27 @@ public class Rectangles extends PApplet {
 
 		// Setup Server
 		if (this.isServer) {
-			// Player
+			
 			float sqrDim = 50;
-			player = new Player(this, sqrDim, height - sqrDim  - 2, 1);
+
+			// Spawn Points
+			spawnPoints[0] =  new Spawn(this, width - sqrDim, 0 + sqrDim);
+			spawnPoints[1] =  new Spawn(this, width - sqrDim, height - sqrDim);
+
+			for (Spawn s : spawnPoints) {
+				objects.add(s);
+				objectMap.put(s.getUUID(), s);	
+			}
+			
+			// Death Zone
+			DeathZone dz_1 = new DeathZone(this, 0, 0);
+			objects.add(dz_1);
+			objectMap.put(dz_1.getUUID(), dz_1);
+			
+			// Player
+			Spawn rand = spawnPoints[generator.nextInt(2)];
+			player = new Player(this, sqrDim, rand.getPy().getLocation().x,
+					rand.getPy().getLocation().y);
 
 			this.server = new Server(this, 9200, this.threadPool, player);
 			this.localClient = this.server.getLocalClient();
@@ -97,22 +121,29 @@ public class Rectangles extends PApplet {
 			ArrayList<Platform> staticPlatforms = new ArrayList<Platform>();
 			ArrayList<Platform> movPlatforms = new ArrayList<Platform>();
 
-			for (Platform p : movPlatforms) {
-				p.getPy().setTopSpeed(5);
-				p.getPy().setVelocity(new PVector(5, 0));
-			}
-
+			//Platform static_1 = new Platform(this, pWidth, pHeight, width - 4*pWidth, 500, false);
 			Platform static_1 = new Platform(this, pWidth, pHeight, width - pWidth, 100, false);
-			Platform static_2 = new Platform(this, pWidth, pHeight, pWidth, 100, false);
+
 			
 			staticPlatforms.add(static_1);
-			staticPlatforms.add(static_2);
 
-			Platform mov_1 = new Platform(this, pWidth, pHeight, width - pWidth, 300, false);
-			Platform mov_2 = new Platform(this, pWidth, pHeight, pWidth, 300, false);
+			Platform mov_1 = new Platform(this, pWidth, pHeight, width - 3*pWidth, 150, false);
+			Platform mov_2 = new Platform(this, pWidth, pHeight, width - 5*pWidth, 250, false);
+
 
 			movPlatforms.add(mov_1);
 			movPlatforms.add(mov_2);
+
+			for (Platform p : movPlatforms) {
+				p.getPy().setTopSpeed(2);
+				p.getPy().setVelocity(new PVector(2, 0));
+			}
+			
+			Platform mov_3 = new Platform(this, pWidth, pHeight, 0, 100, false);
+			mov_3.getPy().setTopSpeed(2);
+			mov_3.getPy().setVelocity(new PVector(0, 2));
+			movPlatforms.add(mov_3);
+
 
 			for (Platform p : staticPlatforms) {
 				objects.add(p);
@@ -143,7 +174,10 @@ public class Rectangles extends PApplet {
 
 	public void draw() {
 		background(0);
-
+		if (this.isServer) {
+			text("Deaths: " + deathPoints , 110, 40);
+		}
+		
 		this.renderAll(objects);
 
 
@@ -171,10 +205,7 @@ public class Rectangles extends PApplet {
 	}
 	
 	public void render(GameObj obj) {
-		if (obj.getType().equals("boundary")) {
-			rect((float) obj.getPy().getBounds2D().getX(), (float) obj.getPy().getBounds2D().getY(),
-					(float) obj.getPy().getBounds2D().getWidth(), (float) obj.getPy().getBounds2D().getHeight());
-		} else {
+		if (obj.getRend() != null) {
 			shape(obj.getRend().getShape(), obj.getPy().getLocation().x, obj.getPy().getLocation().y);
 		}
 	}

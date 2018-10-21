@@ -4,10 +4,12 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import engine.Boundary;
+import engine.DeathZone;
 import engine.GameObj;
 import engine.Platform;
 import engine.Player;
 import engine.Rectangles;
+import engine.Spawn;
 import processing.core.PApplet;
 import processing.core.PConstants;
 
@@ -192,6 +194,10 @@ public class Packet {
 			case ("boundary"):
 				this.obj = Boundary.deSerial(objectSerial);
 				break;
+			case("spawn"):
+				this.obj = Spawn.deSerial(inst, objectSerial);
+			case("death-zone"):
+				this.obj = DeathZone.deSerial(inst, objectSerial);
 			default:
 				break;
 			}

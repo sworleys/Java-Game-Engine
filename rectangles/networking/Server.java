@@ -12,6 +12,7 @@ import com.sun.xml.internal.bind.v2.runtime.reflect.Lister.Pack;
 import engine.GameObj;
 import engine.Player;
 import engine.Rectangles;
+import engine.Spawn;
 import processing.core.PApplet;
 
 // From http://tutorials.jenkov.com/java-multithreaded-servers/thread-pooled-server.html
@@ -54,12 +55,12 @@ public class Server extends PApplet implements Runnable {
 				}
 				throw new RuntimeException("Error accepting client connection" + e);
 			}
-			Player playerCopy = this.localClient.getPlayer();
-			Random r = new Random();
-			playerCopy.getRend().getShape().setFill(color(r.nextInt(255), r.nextInt(255), r.nextInt(255)));
+			Random r = Rectangles.generator;
 			
-			Client client = new Client(this.inst, clientSocket, this.threadPool, new Player(inst, playerCopy.getDim(),
-					playerCopy.getPy().getLocation().x, playerCopy.getPy().getLocation().y));
+			Spawn s = Rectangles.spawnPoints[r.nextInt(2)];
+
+			Client client = new Client(this.inst, clientSocket, this.threadPool, new Player(inst, Rectangles.player.getDim(),
+					s.getPy().getLocation().x, s.getPy().getLocation().y));
 
 			for (GameObj obj : Rectangles.objects) {
 				Packet p = new Packet(Packet.PACKET_CREATE, obj);

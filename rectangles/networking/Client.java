@@ -121,6 +121,18 @@ public class Client implements Runnable {
 	public synchronized void stop() {
 		this.isStopped = true;
 		try {
+			Packet p = new Packet(Packet.PACKET_DESTROY, Rectangles.player);
+			synchronized (this.output) {
+				try {
+					//System.out.println("Sent: " + p.getSerialData());
+					this.output.writeUTF(p.getSerialData());
+				} catch (SocketException e) {
+					// Ignore client has just disconnected
+				} catch (IOException e) {
+					System.out.println("Error writing to socket: " + this.socket.toString());
+					e.printStackTrace();
+				}
+			}
 			this.socket.close();
 		} catch (IOException e) {
 			throw new RuntimeException("Error closing client socket", e);
@@ -154,7 +166,7 @@ public class Client implements Runnable {
 		@Override
 		public void run() {
 			// Just force processing
-			this.p = new Packet(this.client.inst, this.recv);			
+			this.p = new Packet(this.client.inst, this.recv);
 		}
 	}
 
