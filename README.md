@@ -19,7 +19,7 @@ How to run:
 
 Arrow Keys: move
 Space: Jump (Notice the cool gravity and bounce affects? :D)
-'q': Iterate the number printed on the screen. This is just a simple way to demonstrate world state between clients.
+
 
 
 
