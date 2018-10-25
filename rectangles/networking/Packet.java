@@ -181,6 +181,7 @@ public class Packet {
 			case ("player"):
 				this.obj = Player.deSerial(this.inst, objectSerial);
 				Rectangles.movObjects.add(this.obj);
+				//System.out.println(this.uuid + ": " + this.obj.getRend().getColorToString());
 				if(this.type == PACKET_REGISTER) {
 					Rectangles.player = (Player) this.obj;
 				}
@@ -241,8 +242,12 @@ public class Packet {
 					break;
 				}
 			}
+			try {
 			Rectangles.objectMap.get(this.uuid).getPy().getLocation()
 				.set(this.location[0], this.location[1]);
+			} catch (NullPointerException e) {
+				// Do nothing, update for object not yet created most likely
+			}
 			break;
 		case (PACKET_KEY_PRESS):
 			this.keyPress = Integer.parseInt(serialData[1].split(":")[1]);
