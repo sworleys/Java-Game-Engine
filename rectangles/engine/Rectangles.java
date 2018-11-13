@@ -3,6 +3,7 @@ package engine;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -11,6 +12,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import engine.events.Event;
+import engine.events.EventManager;
 import engine.time.GlobalTimeline;
 import engine.time.LocalTimeline;
 import engine.time.Timeline;
@@ -36,6 +39,7 @@ public class Rectangles extends PApplet {
 	public static Timeline physicsTimeline = new LocalTimeline(globalTimeline, 1);
 	public static Timeline networkTimeline = new LocalTimeline(globalTimeline, 1);
 	public static Timeline renderTimeline = new LocalTimeline(globalTimeline, 1);
+	public static EventManager eventManager = new EventManager();
 
 	
 	public static Player player;
@@ -267,38 +271,24 @@ public class Rectangles extends PApplet {
 	}
 
 	public void keyPressed() {
-		if (key == CODED) {
-			if (keyCode == LEFT) {
-				if (this.isServer) {
-					player.getPy().setAccelerationX(-5);
-				} else {
-					Packet p = new Packet(keyCode, player.getUUID());
-					this.localClient.write(p);
-				}
-			}
-			if (keyCode == RIGHT) {
-				if (this.isServer) {
-					player.getPy().setAccelerationX(5);
-				} else {
-					Packet p = new Packet(keyCode, player.getUUID());
-					this.localClient.write(p);
-				}
-			}
-		}
-		if (key == ' ') {
+		if (keyCode == LEFT || keyCode == RIGHT || key == ' ') {
 			if (this.isServer) {
-				player.getPy().setAccelerationY(-20);
+				HashMap<String, Object> data = new HashMap<>();
+				Event e = new Event(Event.EVENT_INPUT, globalTimeline.getCurrentTime(), data);
+				data.put("keyCode", keyCode);
+				data.put("caller", player.getUUID());
+				eventManager.raiseEvent(e);
 			} else {
 				Packet p = new Packet(keyCode, player.getUUID());
 				this.localClient.write(p);
 			}
 		}
-		
+
 		if (key == 'p') {
 			globalTimeline.pause();
 			System.out.println("Paused");
 		}
-		
+
 		if (key == 'u') {
 			globalTimeline.unpause();
 			System.out.println("Un-Paused");

@@ -1,5 +1,6 @@
 package engine;
 
+import engine.events.Event;
 import processing.core.PApplet;
 import processing.core.PShape;
 
@@ -49,5 +50,10 @@ public class Spawn extends GameObj {
 		}
 		Spawn res = new Spawn(inst, x, y);
 		return res;
+	}
+
+	@Override
+	public void handleEvent(Event e) {
+		// Do nothing		
 	}
 }

@@ -3,9 +3,10 @@ package engine;
 
 import java.util.UUID;
 
+import engine.events.Event;
 import processing.core.PApplet;
 
-public abstract class GameObj extends PApplet {
+public abstract class GameObj extends EngineObject {
 	protected Physics py;
 	protected Renderable rend;
 	private float objWidth;

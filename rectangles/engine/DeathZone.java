@@ -1,5 +1,6 @@
 package engine;
 
+import engine.events.Event;
 import processing.core.PApplet;
 
 public class DeathZone extends GameObj {
@@ -47,5 +48,10 @@ public class DeathZone extends GameObj {
 		}
 		DeathZone res = new DeathZone(inst, x, y);
 		return res;
+	}
+
+	@Override
+	public void handleEvent(Event e) {
+		// Do nothing
 	}
 }

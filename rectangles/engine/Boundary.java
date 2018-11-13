@@ -1,5 +1,7 @@
 package engine;
 
+import engine.events.Event;
+
 public class Boundary extends GameObj{
 
 	public Boundary(float objWidth, float objHeight, float x, float y, boolean isFloor) {
@@ -60,5 +62,9 @@ public class Boundary extends GameObj{
 		}
 		Boundary res = new Boundary(width, height, x, y, isFloor);
 		return res;
+	}
+	
+	public void handleEvent(Event e) {
+		// Do nothing
 	}
 }

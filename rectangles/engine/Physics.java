@@ -6,8 +6,10 @@ import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import engine.events.Event;
 import processing.core.PApplet;
 import processing.core.PVector;
 
@@ -42,40 +44,13 @@ public class Physics extends PApplet implements Shape {
 	public void update(GameObj caller, CopyOnWriteArrayList<GameObj> objects) {
 		//this.acceleration.setMag(0.2);
 		
+		GameObj collidedWith = null;
+		
 		for (GameObj obj : objects) {
 			if (this.intersects(obj.getPy().getBounds2D()) && !obj.getUUID().equals(caller.getUUID())) {
-				if (caller.getType().equals("platform")) {
-					if (obj.getType().equals("boundary")) {
-						this.velocity.mult(-1);
-					}
-				} else {
-					if (obj.isFloor()) {
-						this.velocity.y = (float) -1;
-					} else {
-						switch (obj.getType()) {
-						case ("player"):
-							// Do nothing, clip-less
-							break;
-						case("platform"):
-							this.acceleration.mult((float) -1);
-							if (this.velocity.y > 0) {
-								this.velocity.y = (float) 0;
-							} else {
-								this.velocity.y = (float) -1;
-								this.velocity.x = (float) 0;
-							}
-							break;
-						case("death-zone"):
-							Spawn s = Rectangles.spawnPoints[Rectangles.generator.nextInt(2)];
-							this.location.set(s.getPy().getLocation().x, s.getPy().getLocation().y);
-							Rectangles.deathPoints++;
-							break;
-						default:
-							this.velocity.mult((float) -1);
-							break;
-						}
-					}
-				}
+				collidedWith = obj;
+				// TODO: Need break here?
+				break;
 			}
 		}
 
@@ -87,9 +62,28 @@ public class Physics extends PApplet implements Shape {
 		 * 
 		 * In replays, just worry about movement events! :D
 		 */
-		this.velocity.add(this.acceleration);
-		this.velocity.limit(this.topSpeed);
-		this.location.add(this.velocity);
+		
+		if (collidedWith != null) {
+			HashMap<String, Object> data = new HashMap<>();
+			data.put("caller", caller.getUUID());
+			data.put("collidedWith", collidedWith.getUUID());
+			Event e = new Event(Event.EVENT_COLLISON, Rectangles.globalTimeline.getCurrentTime(), data);
+			Rectangles.eventManager.raiseEvent(e);
+		} else {
+			this.velocity.add(this.acceleration);
+			this.velocity.limit(this.topSpeed);
+			if (this.velocity.mag() > 0) {
+				PVector newLoc = new PVector(this.location.x, this.location.y);
+				newLoc.add(this.velocity);
+				HashMap<String, Object> data = new HashMap<>();
+				data.put("caller", caller.getUUID());
+				data.put("x", newLoc.x);
+				data.put("y", newLoc.y);
+				Event e = new Event(Event.EVENT_MOVEMENT, Rectangles.globalTimeline.getCurrentTime(), data);
+				Rectangles.eventManager.raiseEvent(e);
+			}
+			//this.location.add(this.velocity);
+		}
 
 		// Reset acceleration?
 		if (this.isGrav) {

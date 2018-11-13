@@ -251,12 +251,12 @@ public class Packet {
 			break;
 		case (PACKET_KEY_PRESS):
 			this.keyPress = Integer.parseInt(serialData[1].split(":")[1]);
-				if (this.keyPress == PConstants.LEFT) {
-					Rectangles.objectMap.get(this.uuid).getPy().setAccelerationX(-5);
-				}
-				if (this.keyPress == PConstants.RIGHT) {
-					Rectangles.objectMap.get(this.uuid).getPy().setAccelerationX(5);
-				}
+			if (this.keyPress == PConstants.LEFT) {
+				Rectangles.objectMap.get(this.uuid).getPy().setAccelerationX(-5);
+			}
+			if (this.keyPress == PConstants.RIGHT) {
+				Rectangles.objectMap.get(this.uuid).getPy().setAccelerationX(5);
+			}
 			if (this.keyPress == ' ') {
 				Rectangles.objectMap.get(this.uuid).getPy().setAccelerationY(-20);
 			}
