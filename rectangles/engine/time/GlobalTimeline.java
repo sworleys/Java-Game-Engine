@@ -1,11 +1,8 @@
 package engine.time;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
-public class LocalTimeline implements Timeline {
+public class GlobalTimeline implements Timeline {
 
 	private int tickSize;
-	public Timeline anchor;
 	private long startTime;
 
 
@@ -20,26 +17,25 @@ public class LocalTimeline implements Timeline {
 
 	/* Last time delta was calculated */
 	private long lastTime = 0;
-	
+
 	/* Lock for pausing */
 	private Object lock = new Object();
 
 
-	public LocalTimeline(Timeline anchor, int tickSize) {
-		this.anchor = anchor;
+	public GlobalTimeline(int tickSize) {
 		this.tickSize = tickSize;
 	}
 
 	@Override
 	public void start() {
-		this.startTime = anchor.getCurrentTime();
+		this.startTime = System.currentTimeMillis();
 	}
 
 	@Override
 	public void pause() {
 		synchronized (this.lock) {
 			if (!this.isPaused) {
-				this.pausedTime = anchor.getCurrentTime();
+				this.pausedTime = System.currentTimeMillis();
 				this.isPaused = true;
 			}
 		}
@@ -48,7 +44,7 @@ public class LocalTimeline implements Timeline {
 	@Override
 	public void unpause() {
 		synchronized (this.lock) {
-			this.pausedTotalTime += (anchor.getCurrentTime() - this.pausedTime);
+			this.pausedTotalTime += (System.currentTimeMillis() - this.pausedTime);
 			this.pausedTime = 0;
 			this.isPaused = false;
 		}
@@ -56,10 +52,10 @@ public class LocalTimeline implements Timeline {
 
 	@Override
 	public long getCurrentTime() {
-		if (this.isPaused) {
+		if (this.isPaused ) {
 			return this.pausedTime;
 		} else {
-			long elapsedTime = (this.anchor.getCurrentTime() - this.startTime) - this.pausedTotalTime;
+			long elapsedTime = (System.currentTimeMillis() - this.startTime) - this.pausedTotalTime;
 			return elapsedTime / this.tickSize;
 		}
 	}
@@ -81,5 +77,4 @@ public class LocalTimeline implements Timeline {
 		this.lastTime = currentTime;
 		return delta;
 	}
-
 }

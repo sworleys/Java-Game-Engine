@@ -9,7 +9,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
+import engine.time.GlobalTimeline;
+import engine.time.LocalTimeline;
+import engine.time.Timeline;
 import networking.Client;
 import networking.Packet;
 import networking.Server;
@@ -28,6 +32,10 @@ public class Rectangles extends PApplet {
 	public static Spawn[] spawnPoints = new Spawn[2];
 	public static Random generator = new Random();
 	public static int deathPoints = 0;
+	public static Timeline globalTimeline = new GlobalTimeline(1000/60);
+	public static Timeline physicsTimeline = new LocalTimeline(globalTimeline, 1);
+	public static Timeline networkTimeline = new LocalTimeline(globalTimeline, 1);
+	public static Timeline renderTimeline = new LocalTimeline(globalTimeline, 1);
 
 	
 	public static Player player;
@@ -41,21 +49,76 @@ public class Rectangles extends PApplet {
 	private GameObj rightWall;
 
 	private ExecutorService threadPool = Executors.newFixedThreadPool(NUM_THREADS);
+	private boolean setup = false;
 
 	
 	public Rectangles(boolean isServer) {
 		this.isServer = isServer;
 		System.out.println("Server: " + this.isServer);
+		
+		// Start timelines
+		globalTimeline.start();
+		physicsTimeline.start();
+		networkTimeline.start();
+		renderTimeline.start();
 	}
 	
+	/**
+	 * Just runs the game loop infinitely
+	 */
+	public void runLoop() {
+		while(true) {
+			this.gameLoop(globalTimeline.getAndResetDelta());
+		}
+	}
+	
+	/**
+	 * Single iteration of the game loop
+	 * @param delta local time since last iteration
+	 */
+	private void gameLoop(long delta) {
+		if (delta > 0) {
+			this.updatePhysics(physicsTimeline.getAndResetDelta());
+			this.updateNetwork(networkTimeline.getAndResetDelta());
+			this.updateRender(renderTimeline.getAndResetDelta());
+		}
+	}
+
+	/* Update methods with deltas */
+	// TODO: Determine if this is event the best way to do it...
+
+	private void updateRender(long delta) {
+		if (delta > 0) {
+			this.redraw();	
+		}
+	}
+
+	private void updateNetwork(long delta) {
+		if (delta > 0 && this.isServer) {
+			this.server.updateClients();
+		}
+	}
+
+	private void updatePhysics(long delta) {
+		// Dummy Renderer?
+		if (delta > 0 && this.isServer) {
+			// Update physics
+			for (GameObj obj : movObjects) {
+				obj.getPy().update(obj, objects);
+			}
+		}		
+	}
+
 	public void settings() {
 		size(640, 360);
 	}
 
 	public void setup() {
 		background(0);
-		frameRate(60);
+		// Just set to be unreasonably high
+		frameRate(1000);
 		textSize(32);
+		noLoop();
 
 
 		// Setup Server
@@ -169,7 +232,8 @@ public class Rectangles extends PApplet {
 			}
 			new Thread(this.localClient).start();
 		}
-
+		
+		this.setup = true;
 	}
 
 	public void draw() {
@@ -177,25 +241,8 @@ public class Rectangles extends PApplet {
 		if (this.isServer) {
 			text("Deaths: " + deathPoints , 110, 40);
 		}
-		
+
 		this.renderAll(objects);
-
-
-		// Dummy Renderer?
-		if (isServer) {
-			// Update physics
-			for (GameObj obj : movObjects) {
-				obj.getPy().update(obj, objects);
-			}
-		}
-		
-		// Only run update to clients 30fps?
-		if (frameCount % 1 == 0) {
-			if (this.isServer) {
-				this.server.updateClients();
-			}
-		}
-
 	}
 
 	private void renderAll(CopyOnWriteArrayList<GameObj> objects) {
@@ -246,8 +293,22 @@ public class Rectangles extends PApplet {
 				this.localClient.write(p);
 			}
 		}
+		
+		if (key == 'p') {
+			globalTimeline.pause();
+			System.out.println("Paused");
+		}
+		
+		if (key == 'u') {
+			globalTimeline.unpause();
+			System.out.println("Un-Paused");
+		}
 	}
-	
+
+	public boolean isSetup() {
+		return this.setup;
+	}
+
 	public static void setPlayer(Player p) {
 		player = p;
 		objectMap.put(player.getUUID(), player);
@@ -266,6 +327,10 @@ public class Rectangles extends PApplet {
 			sketch = new Rectangles(false);
 		}
 		PApplet.runSketch(processingArgs, sketch);
+		while (!sketch.isSetup()) {
+			System.out.println("Waiting...");
+		}
+		sketch.runLoop();
 	}
 
 }

@@ -13,6 +13,9 @@ public interface Timeline {
 	
 	/* Get Current time */
 	public long getCurrentTime();
+	
+	/* Get delta time since last time serviced */
+	public long getAndResetDelta();
 
 	/* Get tick size */
 	public int getTickSize();

@@ -39,7 +39,7 @@ public class Physics extends PApplet implements Shape {
 		this.mass = mass;
 	}
 
-	public PVector update(GameObj caller, CopyOnWriteArrayList<GameObj> objects) {
+	public void update(GameObj caller, CopyOnWriteArrayList<GameObj> objects) {
 		//this.acceleration.setMag(0.2);
 		
 		for (GameObj obj : objects) {
@@ -79,6 +79,14 @@ public class Physics extends PApplet implements Shape {
 			}
 		}
 
+		/**
+		 * TODO: Implement here so that if collision occurs, no movement below, let collision event handle
+		 * raising a new movement event
+		 * 
+		 * else, just raise movement event here if object moved
+		 * 
+		 * In replays, just worry about movement events! :D
+		 */
 		this.velocity.add(this.acceleration);
 		this.velocity.limit(this.topSpeed);
 		this.location.add(this.velocity);
@@ -87,7 +95,6 @@ public class Physics extends PApplet implements Shape {
 		if (this.isGrav) {
 			this.acceleration = new PVector(0, GRAV);
 		}
-		return this.location;
 	}
 	
 	// From processing tutorial forces with vectors
