@@ -94,8 +94,8 @@ public class Platform extends GameObj {
 
 	@Override
 	public void handleEvent(Event e) {
-		switch(e.getType()) {
-		case (Event.EVENT_COLLISON):
+		switch (e.getType()) {
+		case (Event.EVENT_COLLISION):
 			if (((UUID) e.getData().get("caller")).equals(this.getUUID())) {
 				GameObj collidedWith = Rectangles.objectMap.get((UUID) e.getData().get("collidedWith"));
 				if (collidedWith.getType().equals("boundary")) {
@@ -109,6 +109,8 @@ public class Platform extends GameObj {
 						data.put("y", newLoc.y);
 						Event mov = new Event(Event.EVENT_MOVEMENT, Rectangles.globalTimeline.getCurrentTime(), data);
 						Rectangles.eventManager.raiseEvent(mov);
+						// Actually move
+						//this.getPy().setLocation(newLoc);
 					}
 				}
 			}
@@ -117,6 +119,15 @@ public class Platform extends GameObj {
 			if (((UUID) e.getData().get("caller")).equals(this.getUUID())) {
 				PVector newLoc = new PVector((float) (e.getData().get("x")), (float) e.getData().get("y"));
 				this.getPy().setLocation(newLoc);
+			}
+			break;
+		case (Event.EVENT_PHYSICS):
+			if (((UUID) e.getData().get("caller")).equals(this.getUUID())) {
+				this.getPy().update(this, Rectangles.objects);
+				HashMap<String, Object> data = new HashMap<>();
+				data.put("caller", this.getUUID());
+				Event py = new Event(Event.EVENT_PHYSICS, e.getTime() + Rectangles.physicsTimeline.getTickSize(), data);
+				Rectangles.eventManager.raiseEvent(py);
 			}
 			break;
 		default:

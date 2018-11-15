@@ -10,6 +10,7 @@ import engine.Platform;
 import engine.Player;
 import engine.Rectangles;
 import engine.Spawn;
+import engine.events.Event;
 import processing.core.PApplet;
 import processing.core.PConstants;
 
@@ -251,14 +252,13 @@ public class Packet {
 			break;
 		case (PACKET_KEY_PRESS):
 			this.keyPress = Integer.parseInt(serialData[1].split(":")[1]);
-			if (this.keyPress == PConstants.LEFT) {
-				Rectangles.objectMap.get(this.uuid).getPy().setAccelerationX(-5);
-			}
-			if (this.keyPress == PConstants.RIGHT) {
-				Rectangles.objectMap.get(this.uuid).getPy().setAccelerationX(5);
-			}
-			if (this.keyPress == ' ') {
-				Rectangles.objectMap.get(this.uuid).getPy().setAccelerationY(-20);
+			if (this.keyPress == PConstants.LEFT || this.keyPress == PConstants.RIGHT || this.keyPress == ' ') {
+				HashMap<String, Object> data = new HashMap<>();
+				Event e = new Event(Event.EVENT_INPUT, Rectangles.globalTimeline.getCurrentTime(), data);
+				data.put("keyCode", this.keyPress);
+				data.put("caller", this.uuid);
+				Rectangles.eventManager.raiseEvent(e);
+				
 			}
 			break;
 		default:

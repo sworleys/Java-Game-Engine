@@ -67,9 +67,10 @@ public class Physics extends PApplet implements Shape {
 			HashMap<String, Object> data = new HashMap<>();
 			data.put("caller", caller.getUUID());
 			data.put("collidedWith", collidedWith.getUUID());
-			Event e = new Event(Event.EVENT_COLLISON, Rectangles.globalTimeline.getCurrentTime(), data);
+			Event e = new Event(Event.EVENT_COLLISION, Rectangles.globalTimeline.getCurrentTime(), data);
 			Rectangles.eventManager.raiseEvent(e);
-		} else {
+		}
+		
 			this.velocity.add(this.acceleration);
 			this.velocity.limit(this.topSpeed);
 			if (this.velocity.mag() > 0) {
@@ -81,7 +82,9 @@ public class Physics extends PApplet implements Shape {
 				data.put("y", newLoc.y);
 				Event e = new Event(Event.EVENT_MOVEMENT, Rectangles.globalTimeline.getCurrentTime(), data);
 				Rectangles.eventManager.raiseEvent(e);
-			}
+				// Actually move
+				//this.setLocation(newLoc);
+
 			//this.location.add(this.velocity);
 		}
 

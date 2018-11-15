@@ -35,13 +35,14 @@ public class Rectangles extends PApplet {
 	public static Spawn[] spawnPoints = new Spawn[2];
 	public static Random generator = new Random();
 	public static int deathPoints = 0;
-	public static Timeline globalTimeline = new GlobalTimeline(1000/60);
+	public static Timeline globalTimeline = new GlobalTimeline(1000/144);
 	public static Timeline physicsTimeline = new LocalTimeline(globalTimeline, 1);
-	public static Timeline networkTimeline = new LocalTimeline(globalTimeline, 1);
-	public static Timeline renderTimeline = new LocalTimeline(globalTimeline, 1);
+	public static Timeline networkTimeline = new LocalTimeline(globalTimeline, 3);
+	public static Timeline renderTimeline = new LocalTimeline(globalTimeline, 3);
 	public static EventManager eventManager = new EventManager();
+	public static ExecutorService threadPool = Executors.newFixedThreadPool(NUM_THREADS);
 
-	
+
 	public static Player player;
 	
 	private boolean isServer;
@@ -52,7 +53,6 @@ public class Rectangles extends PApplet {
 	private GameObj leftWall;
 	private GameObj rightWall;
 
-	private ExecutorService threadPool = Executors.newFixedThreadPool(NUM_THREADS);
 	private boolean setup = false;
 
 	
@@ -71,8 +71,26 @@ public class Rectangles extends PApplet {
 	 * Just runs the game loop infinitely
 	 */
 	public void runLoop() {
+		for (GameObj obj : movObjects) {
+			eventManager.registerHandler(obj, Event.EVENT_COLLISION);
+			eventManager.registerHandler(obj, Event.EVENT_MOVEMENT);
+			eventManager.registerHandler(obj, Event.EVENT_PHYSICS);
+			if (obj.getType() == "player") {
+				eventManager.registerHandler(obj, Event.EVENT_INPUT);
+				eventManager.registerHandler(obj, Event.EVENT_DEATH);
+				eventManager.registerHandler(obj, Event.EVENT_SPAWN);
+			}
+			HashMap<String, Object> data = new HashMap<>();
+			data.put("caller", obj.getUUID());
+			Event e = new Event(Event.EVENT_PHYSICS, globalTimeline.getCurrentTime() 
+						+ physicsTimeline.getTickSize(), data);
+			eventManager.raiseEvent(e);
+
+
+			
+		}
 		while(true) {
-			this.gameLoop(globalTimeline.getAndResetDelta());
+			this.gameLoop(globalTimeline.resetDelta());
 		}
 	}
 	
@@ -80,32 +98,33 @@ public class Rectangles extends PApplet {
 	 * Single iteration of the game loop
 	 * @param delta local time since last iteration
 	 */
-	private void gameLoop(long delta) {
-		if (delta > 0) {
-			this.updatePhysics(physicsTimeline.getAndResetDelta());
-			this.updateNetwork(networkTimeline.getAndResetDelta());
-			this.updateRender(renderTimeline.getAndResetDelta());
+	private void gameLoop(boolean delta) {
+		if (delta) {
+			threadPool.execute(eventManager);
+			//this.updatePhysics(physicsTimeline.getAndResetDelta());
+			//this.updateNetwork(networkTimeline.resetDelta());
+			this.updateRender(renderTimeline.resetDelta());
 		}
 	}
 
 	/* Update methods with deltas */
 	// TODO: Determine if this is event the best way to do it...
 
-	private void updateRender(long delta) {
-		if (delta > 0) {
+	private void updateRender(boolean delta) {
+		if (delta) {
 			this.redraw();	
 		}
 	}
 
-	private void updateNetwork(long delta) {
-		if (delta > 0 && this.isServer) {
+	private void updateNetwork(boolean delta) {
+		if (delta && this.isServer) {
 			this.server.updateClients();
 		}
 	}
 
-	private void updatePhysics(long delta) {
+	private void updatePhysics(boolean delta) {
 		// Dummy Renderer?
-		if (delta > 0 && this.isServer) {
+		if (delta && this.isServer) {
 			// Update physics
 			for (GameObj obj : movObjects) {
 				obj.getPy().update(obj, objects);

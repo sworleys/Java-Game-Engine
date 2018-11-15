@@ -15,7 +15,7 @@ public interface Timeline {
 	public long getCurrentTime();
 	
 	/* Get delta time since last time serviced */
-	public long getAndResetDelta();
+	public boolean resetDelta();
 
 	/* Get tick size */
 	public int getTickSize();

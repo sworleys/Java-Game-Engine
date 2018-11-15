@@ -5,10 +5,11 @@ import java.util.UUID;
 
 public class Event {
 	public static final int EVENT_INPUT = 0;
-	public static final int EVENT_COLLISON = 1;
-	public static final int EVENT_MOVEMENT = 2;
-	public static final int EVENT_DEATH = 3;
-	public static final int EVENT_SPAWN = 4;
+	public static final int EVENT_DEATH = 1;
+	public static final int EVENT_SPAWN = 2;
+	public static final int EVENT_MOVEMENT = 3;
+	public static final int EVENT_COLLISION = 4;
+	public static final int EVENT_PHYSICS = 5;
 
 	private int type = -1;
 	

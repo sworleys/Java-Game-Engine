@@ -12,6 +12,7 @@ import engine.GameObj;
 import engine.Player;
 import engine.Rectangles;
 import engine.Spawn;
+import engine.events.Event;
 import processing.core.PApplet;
 
 // From http://tutorials.jenkov.com/java-multithreaded-servers/thread-pooled-server.html
@@ -72,6 +73,12 @@ public class Server extends PApplet implements Runnable {
 			Rectangles.objectMap.put(client.getPlayer().getUUID(), client.getPlayer());
 			Rectangles.objects.add(client.getPlayer());
 			Rectangles.movObjects.add(client.getPlayer());
+			
+			// Register player for events
+			Rectangles.eventManager.registerHandler(client.getPlayer(), Event.EVENT_INPUT);
+			Rectangles.eventManager.registerHandler(client.getPlayer(), Event.EVENT_DEATH);
+			Rectangles.eventManager.registerHandler(client.getPlayer(), Event.EVENT_SPAWN);
+			
 			p = new Packet(Packet.PACKET_REGISTER, client.getPlayer());
 			client.write(p);
 			synchronized (this.clients) {

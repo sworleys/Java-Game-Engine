@@ -75,11 +75,14 @@ public class LocalTimeline implements Timeline {
 	}
 
 	@Override
-	public long getAndResetDelta() {
+	public boolean resetDelta() {
 		long currentTime = this.getCurrentTime();
 		long delta = currentTime - this.lastTime;
-		this.lastTime = currentTime;
-		return delta;
+		if (delta > 0) {
+			this.lastTime = currentTime;
+			return true;
+		}
+		return false;
 	}
 
 }
