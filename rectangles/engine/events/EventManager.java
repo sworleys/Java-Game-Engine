@@ -39,7 +39,7 @@ public class EventManager implements Runnable {
 	}
 	
 	public void raiseEvent(Event e) {
-		System.out.println(Rectangles.eventManager.getEventQueue().size());
+		//System.out.println(Rectangles.eventManager.getEventQueue().size());
 		//System.out.println(e.getType() + " : " + Rectangles.objectMap.get(e.getData().get("caller")).getType());
 		this.eventQueue.add(e);
 	}

@@ -47,7 +47,7 @@ public class Physics extends PApplet implements Shape {
 		GameObj collidedWith = null;
 		
 		for (GameObj obj : objects) {
-			if (this.intersects(obj.getPy().getBounds2D()) && !obj.getUUID().equals(caller.getUUID())) {
+			if (this.intersects(obj.getPy().getBounds2D()) && !obj.getUUID().equals(caller.getUUID()) && !obj.getType().equals("player")) {
 				collidedWith = obj;
 				// TODO: Need break here?
 				break;
@@ -67,10 +67,10 @@ public class Physics extends PApplet implements Shape {
 			HashMap<String, Object> data = new HashMap<>();
 			data.put("caller", caller.getUUID());
 			data.put("collidedWith", collidedWith.getUUID());
+			// TODO: Could just make the collision event also be movement?
 			Event e = new Event(Event.EVENT_COLLISION, Rectangles.globalTimeline.getCurrentTime(), data);
 			Rectangles.eventManager.raiseEvent(e);
-		}
-		
+		} else {
 			this.velocity.add(this.acceleration);
 			this.velocity.limit(this.topSpeed);
 			if (this.velocity.mag() > 0) {
@@ -83,9 +83,8 @@ public class Physics extends PApplet implements Shape {
 				Event e = new Event(Event.EVENT_MOVEMENT, Rectangles.globalTimeline.getCurrentTime(), data);
 				Rectangles.eventManager.raiseEvent(e);
 				// Actually move
-				//this.setLocation(newLoc);
-
-			//this.location.add(this.velocity);
+				//this.location.add(this.velocity);
+			}
 		}
 
 		// Reset acceleration?

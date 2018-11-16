@@ -2,6 +2,7 @@ package networking;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -75,10 +76,21 @@ public class Server extends PApplet implements Runnable {
 			Rectangles.movObjects.add(client.getPlayer());
 			
 			// Register player for events
+			Rectangles.eventManager.registerHandler(client.getPlayer(), Event.EVENT_COLLISION);
+			Rectangles.eventManager.registerHandler(client.getPlayer(), Event.EVENT_MOVEMENT);
+			Rectangles.eventManager.registerHandler(client.getPlayer(), Event.EVENT_PHYSICS);
 			Rectangles.eventManager.registerHandler(client.getPlayer(), Event.EVENT_INPUT);
 			Rectangles.eventManager.registerHandler(client.getPlayer(), Event.EVENT_DEATH);
 			Rectangles.eventManager.registerHandler(client.getPlayer(), Event.EVENT_SPAWN);
 			
+			// Start physics processing for new player
+			HashMap<String, Object> data = new HashMap<>();
+			data.put("caller", client.getPlayer().getUUID());
+			Event e = new Event(Event.EVENT_PHYSICS, 0, data);
+			Rectangles.eventManager.raiseEvent(e);
+			
+			
+			// Send back register packet to client
 			p = new Packet(Packet.PACKET_REGISTER, client.getPlayer());
 			client.write(p);
 			synchronized (this.clients) {

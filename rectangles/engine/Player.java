@@ -94,6 +94,7 @@ public class Player extends GameObj {
 				} else {
 					switch (collidedWith.getType()) {
 					case ("player"):
+						System.out.println("player hit player");
 						// Do nothing, clip-less
 						break;
 					case ("platform"):
@@ -110,7 +111,7 @@ public class Player extends GameObj {
 						data.put("caller", this.getUUID());
 						Event death = new Event(Event.EVENT_DEATH, e.getTime(), data);
 						Rectangles.eventManager.raiseEvent(death);
-
+						break;
 					default:
 						this.getPy().getVelocity().mult((float) -1);
 						break;
@@ -124,9 +125,9 @@ public class Player extends GameObj {
 					data.put("x", newLoc.x);
 					data.put("y", newLoc.y);
 					Event mov = new Event(Event.EVENT_MOVEMENT, e.getTime(), data);
-					//Rectangles.eventManager.raiseEvent(mov);
+					Rectangles.eventManager.raiseEvent(mov);
 					// Actually move
-					this.getPy().setLocation(newLoc);
+					//this.getPy().setLocation(newLoc);
 				}
 			}
 			break;
@@ -146,7 +147,8 @@ public class Player extends GameObj {
 				data.put("caller", this.getUUID());
 				data.put("x", s.getPy().getLocation().x);
 				data.put("y", s.getPy().getLocation().y);
-				Event mov = new Event(Event.EVENT_MOVEMENT, e.getTime(), data);
+				Event mov = new Event(Event.EVENT_MOVEMENT, Rectangles.globalTimeline.getCurrentTime()
+						+ Rectangles.physicsTimeline.getTickSize(), data);
 				Rectangles.eventManager.raiseEvent(mov);
 			}
 			break;

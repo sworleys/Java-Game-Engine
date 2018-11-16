@@ -100,18 +100,18 @@ public class Platform extends GameObj {
 				GameObj collidedWith = Rectangles.objectMap.get((UUID) e.getData().get("collidedWith"));
 				if (collidedWith.getType().equals("boundary")) {
 					this.getPy().getVelocity().mult(-1);
-					if (this.getPy().getVelocity().mag() > 0) {
-						PVector newLoc = new PVector(this.getPy().getLocation().x, this.getPy().getLocation().y);
-						newLoc.add(this.getPy().getVelocity());
-						HashMap<String, Object> data = new HashMap<>();
-						data.put("caller", this.getUUID());
-						data.put("x", newLoc.x);
-						data.put("y", newLoc.y);
-						Event mov = new Event(Event.EVENT_MOVEMENT, Rectangles.globalTimeline.getCurrentTime(), data);
-						Rectangles.eventManager.raiseEvent(mov);
-						// Actually move
-						//this.getPy().setLocation(newLoc);
-					}
+				}
+				if (this.getPy().getVelocity().mag() > 0) {
+					PVector newLoc = new PVector(this.getPy().getLocation().x, this.getPy().getLocation().y);
+					newLoc.add(this.getPy().getVelocity());
+					HashMap<String, Object> data = new HashMap<>();
+					data.put("caller", this.getUUID());
+					data.put("x", newLoc.x);
+					data.put("y", newLoc.y);
+					Event mov = new Event(Event.EVENT_MOVEMENT, Rectangles.globalTimeline.getCurrentTime(), data);
+					Rectangles.eventManager.raiseEvent(mov);
+					// Actually move
+					//this.getPy().setLocation(newLoc);
 				}
 			}
 			break;

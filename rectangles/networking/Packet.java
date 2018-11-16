@@ -257,8 +257,7 @@ public class Packet {
 				Event e = new Event(Event.EVENT_INPUT, Rectangles.globalTimeline.getCurrentTime(), data);
 				data.put("keyCode", this.keyPress);
 				data.put("caller", this.uuid);
-				Rectangles.eventManager.raiseEvent(e);
-				
+				Rectangles.eventManager.raiseEvent(e);				
 			}
 			break;
 		default:

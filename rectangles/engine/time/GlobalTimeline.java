@@ -44,20 +44,24 @@ public class GlobalTimeline implements Timeline {
 	@Override
 	public void unpause() {
 		synchronized (this.lock) {
-			this.pausedTotalTime += (System.currentTimeMillis() - this.pausedTime);
-			this.pausedTime = 0;
-			this.isPaused = false;
+			if (this.isPaused) {
+				this.pausedTotalTime += (System.currentTimeMillis() - this.pausedTime);
+				this.pausedTime = 0;
+				this.isPaused = false;
+			}
 		}
 	}
 
 	@Override
 	public long getCurrentTime() {
+		long anchorTime  = 0;
 		if (this.isPaused ) {
-			return this.pausedTime;
+			anchorTime = this.pausedTime;
 		} else {
-			long elapsedTime = (System.currentTimeMillis() - this.startTime) - this.pausedTotalTime;
-			return elapsedTime / this.tickSize;
+			anchorTime = System.currentTimeMillis();
 		}
+		long elapsedTime = (anchorTime - this.startTime) - this.pausedTotalTime;
+		return elapsedTime / this.tickSize;
 	}
 
 	@Override

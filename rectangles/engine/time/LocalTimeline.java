@@ -48,20 +48,24 @@ public class LocalTimeline implements Timeline {
 	@Override
 	public void unpause() {
 		synchronized (this.lock) {
-			this.pausedTotalTime += (anchor.getCurrentTime() - this.pausedTime);
-			this.pausedTime = 0;
-			this.isPaused = false;
+			if (this.isPaused) {
+				this.pausedTotalTime += (anchor.getCurrentTime() - this.pausedTime);
+				this.pausedTime = 0;
+				this.isPaused = false;
+			}
 		}
 	}
 
 	@Override
 	public long getCurrentTime() {
-		if (this.isPaused) {
-			return this.pausedTime;
+		long anchorTime  = 0;
+		if (this.isPaused ) {
+			anchorTime = this.pausedTime;
 		} else {
-			long elapsedTime = (this.anchor.getCurrentTime() - this.startTime) - this.pausedTotalTime;
-			return elapsedTime / this.tickSize;
+			anchorTime = anchor.getCurrentTime();
 		}
+		long elapsedTime = (anchorTime - this.startTime) - this.pausedTotalTime;
+		return elapsedTime / this.tickSize;
 	}
 
 	@Override
