@@ -43,6 +43,13 @@ public class Rectangles extends PApplet {
 	public static EventManager eventManager = new EventManager();
 	public static ExecutorService threadPool = Executors.newFixedThreadPool(NUM_THREADS);
 	public static Replay replay = new Replay();
+	
+	// Performance testing
+	public static Object lock = new Object();
+	public static boolean registered = false;
+	public static long startTime = 0;
+	public static int inputTotal = 1000;
+	public static int inputCounter = 0;
 
 
 	public static Player player;
@@ -97,6 +104,18 @@ public class Rectangles extends PApplet {
 			eventManager.registerHandler(replay, Event.EVENT_MOVEMENT);
 			eventManager.registerHandler(replay, Event.EVENT_END_REPLAY);
 
+		}
+		
+		if (!this.isServer) {
+			// Perf Testing
+			while (!registered) {
+				System.out.println("Waiting for player register");
+			}
+			startTime = globalTimeline.getCurrentTime();
+			for (int i = 0; i < inputTotal; i++) {
+				Packet p = new Packet(LEFT, player.getUUID());
+				this.localClient.write(p);
+			}
 		}
 		while(true) {
 			this.gameLoop(globalTimeline.resetDelta());

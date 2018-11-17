@@ -185,6 +185,7 @@ public class Packet {
 				//System.out.println(this.uuid + ": " + this.obj.getRend().getColorToString());
 				if(this.type == PACKET_REGISTER) {
 					Rectangles.player = (Player) this.obj;
+					Rectangles.registered = true;
 				}
 				break;
 			case ("platform"):
@@ -231,7 +232,6 @@ public class Packet {
 				String[] subData = d.split(":");
 				String key = subData[0];
 				String value = subData[1];
-
 				switch (key) {
 				case ("x"):
 					this.location[0] = Float.parseFloat(value);
@@ -243,6 +243,23 @@ public class Packet {
 					break;
 				}
 			}
+			
+			// Perf testing
+			try {
+				if (this.uuid.equals(Rectangles.player.getUUID())) {
+					synchronized (Rectangles.lock) {
+						if (++Rectangles.inputCounter == Rectangles.inputTotal) {
+//							System.out.println("Counter: " + Rectangles.inputCounter);
+//							System.out.println("End: " + Rectangles.globalTimeline.getCurrentTime());
+							System.out.println("Time: " + (Rectangles.globalTimeline.getCurrentTime() - Rectangles.startTime));
+							System.exit(0);
+						}
+					}
+				}
+			} catch (NullPointerException e) {
+				// ignore
+			}
+			
 			try {
 			Rectangles.objectMap.get(this.uuid).getPy().getLocation()
 				.set(this.location[0], this.location[1]);
