@@ -18,8 +18,14 @@ How to run:
 6) Now you can play with it like so:
 
 Arrow Keys: move
-Space: Jump (Notice the cool gravity and bounce affects? :D)
+Space: Jump
 
+Start Recording: r
+Stop and Play Recording: s  (This defaults to 1/2 speed)
+Change speed: 1-3  (1 = 1/2 speed, 2 = normal speed, 3 = double speed)
+
+Pause: p
+Un-Pause: u
 
 
 
