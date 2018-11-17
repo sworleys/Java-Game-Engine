@@ -83,6 +83,7 @@ public class Replay extends EngineObject {
 						data.put("caller", Rectangles.player.getUUID());
 						this.history.add(end);
 						Rectangles.eventTimeline = new LocalTimeline(Rectangles.globalTimeline, 8);
+						Rectangles.eventTimeline.start();
 						Rectangles.eventManager.getEventQueue().addAll(this.history);
 						System.out.println("Started Replay");
 					}
@@ -90,13 +91,15 @@ public class Replay extends EngineObject {
 				break;
 			case('1'):
 				Rectangles.eventTimeline = new LocalTimeline(Rectangles.globalTimeline, 8);
+				Rectangles.eventTimeline.start();
 				break;
 			case('2'):
 				Rectangles.eventTimeline = new LocalTimeline(Rectangles.globalTimeline, 2);
-
+				Rectangles.eventTimeline.start();
 				break;
 			case('3'):
 				Rectangles.eventTimeline = new LocalTimeline(Rectangles.globalTimeline, 1);
+				Rectangles.eventTimeline.start();
 				break;
 			default:
 				break;
@@ -115,6 +118,7 @@ public class Replay extends EngineObject {
 			synchronized (this.lock) {
 				this.playing = false;
 				Rectangles.eventTimeline = new LocalTimeline(Rectangles.globalTimeline, 2);
+				Rectangles.eventTimeline.start();
 				Rectangles.physicsTimeline.unpause();
 			}
 			break;

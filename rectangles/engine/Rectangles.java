@@ -64,6 +64,7 @@ public class Rectangles extends PApplet {
 		
 		// Start timelines
 		globalTimeline.start();
+		eventTimeline.start();
 		physicsTimeline.start();
 		networkTimeline.start();
 		renderTimeline.start();
