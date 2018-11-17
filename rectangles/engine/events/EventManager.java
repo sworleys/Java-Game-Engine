@@ -51,19 +51,15 @@ public class EventManager implements Runnable {
 
 	@Override
 	public void run() {
-		try {
-			Event next = this.eventQueue.take();
-			//System.out.println(next.getType() + " : " + Rectangles.objectMap.get(next.getData().get("caller")).getType());
-			//System.out.println(next.getData().getOrDefault("isReplay", false));
-			if (next != null) {
-				for (EngineObject handler : this.registrar.get(next.getType())) {
-					handler.handleEvent(next);
-					//Rectangles.threadPool.execute(handler.getReader(next));
-				}
+		Event next = this.eventQueue.poll();
+		// System.out.println(next.getType() + " : " +
+		// Rectangles.objectMap.get(next.getData().get("caller")).getType());
+		// System.out.println(next.getData().getOrDefault("isReplay", false));
+		if (next != null) {
+			for (EngineObject handler : this.registrar.get(next.getType())) {
+				handler.handleEvent(next);
+				// Rectangles.threadPool.execute(handler.getReader(next));
 			}
-		} catch (InterruptedException e) {
-			System.out.println("Event removal Interrupted");
-			e.printStackTrace();
 		}
 	}
 
