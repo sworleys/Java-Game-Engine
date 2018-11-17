@@ -2,8 +2,11 @@ package engine.events;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EventObject;
 import java.util.HashMap;
 import java.util.concurrent.PriorityBlockingQueue;
+
+import org.w3c.dom.css.Rect;
 
 import engine.EngineObject;
 import engine.GameObj;
@@ -31,7 +34,7 @@ public class EventManager implements Runnable {
 
 
 
-	public void registerHandler(GameObj handler, int type) {
+	public void registerHandler(EngineObject handler, int type) {
 		if (!this.registrar.containsKey(type)) {
 			this.registrar.put(type, new ArrayList<EngineObject>());
 		}
@@ -41,7 +44,9 @@ public class EventManager implements Runnable {
 	public void raiseEvent(Event e) {
 		//System.out.println(Rectangles.eventManager.getEventQueue().size());
 		//System.out.println(e.getType() + " : " + Rectangles.objectMap.get(e.getData().get("caller")).getType());
-		this.eventQueue.add(e);
+		if (e.getType() == Event.EVENT_INPUT || !Rectangles.replay.isPlaying()) {
+			this.eventQueue.add(e);
+		}
 	}
 
 	@Override
@@ -49,6 +54,7 @@ public class EventManager implements Runnable {
 		try {
 			Event next = this.eventQueue.take();
 			//System.out.println(next.getType() + " : " + Rectangles.objectMap.get(next.getData().get("caller")).getType());
+			//System.out.println(next.getData().getOrDefault("isReplay", false));
 			if (next != null) {
 				for (EngineObject handler : this.registrar.get(next.getType())) {
 					handler.handleEvent(next);

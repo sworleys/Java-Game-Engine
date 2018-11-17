@@ -61,7 +61,7 @@ public class GlobalTimeline implements Timeline {
 			anchorTime = System.currentTimeMillis();
 		}
 		long elapsedTime = (anchorTime - this.startTime) - this.pausedTotalTime;
-		return elapsedTime / this.tickSize;
+		return (long) (elapsedTime / this.tickSize);
 	}
 
 	@Override

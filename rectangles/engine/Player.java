@@ -148,7 +148,7 @@ public class Player extends GameObj {
 				data.put("x", s.getPy().getLocation().x);
 				data.put("y", s.getPy().getLocation().y);
 				Event mov = new Event(Event.EVENT_MOVEMENT, Rectangles.globalTimeline.getCurrentTime()
-						+ Rectangles.physicsTimeline.getTickSize(), data);
+						+ (long) Rectangles.physicsTimeline.getTickSize(), data);
 				Rectangles.eventManager.raiseEvent(mov);
 			}
 			break;
@@ -178,7 +178,7 @@ public class Player extends GameObj {
 				this.getPy().update(this, Rectangles.objects);
 				HashMap<String, Object> data = new HashMap<>();
 				data.put("caller", this.getUUID());
-				Event py = new Event(Event.EVENT_PHYSICS, e.getTime() + Rectangles.physicsTimeline.getTickSize(), data);
+				Event py = new Event(Event.EVENT_PHYSICS, e.getTime() + (long) Rectangles.physicsTimeline.getTickSize(), data);
 				Rectangles.eventManager.raiseEvent(py);
 			}
 			break;

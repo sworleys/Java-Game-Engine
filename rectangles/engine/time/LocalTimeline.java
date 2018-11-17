@@ -65,7 +65,7 @@ public class LocalTimeline implements Timeline {
 			anchorTime = anchor.getCurrentTime();
 		}
 		long elapsedTime = (anchorTime - this.startTime) - this.pausedTotalTime;
-		return elapsedTime / this.tickSize;
+		return (long) (elapsedTime / this.tickSize);
 	}
 
 	@Override

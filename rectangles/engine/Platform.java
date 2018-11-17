@@ -126,7 +126,7 @@ public class Platform extends GameObj {
 				this.getPy().update(this, Rectangles.objects);
 				HashMap<String, Object> data = new HashMap<>();
 				data.put("caller", this.getUUID());
-				Event py = new Event(Event.EVENT_PHYSICS, e.getTime() + Rectangles.physicsTimeline.getTickSize(), data);
+				Event py = new Event(Event.EVENT_PHYSICS, e.getTime() + (long) Rectangles.physicsTimeline.getTickSize(), data);
 				Rectangles.eventManager.raiseEvent(py);
 			}
 			break;

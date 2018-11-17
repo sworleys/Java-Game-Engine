@@ -35,13 +35,14 @@ public class Rectangles extends PApplet {
 	public static Spawn[] spawnPoints = new Spawn[2];
 	public static Random generator = new Random();
 	public static int deathPoints = 0;
-	public static Timeline globalTimeline = new GlobalTimeline(1000/500);
-	public static Timeline eventTimeline = new LocalTimeline(globalTimeline, 1);
-	public static Timeline physicsTimeline = new LocalTimeline(globalTimeline, 1);
-	public static Timeline networkTimeline = new LocalTimeline(globalTimeline, 6);
-	public static Timeline renderTimeline = new LocalTimeline(globalTimeline, 6);
+	public static Timeline globalTimeline = new GlobalTimeline(1);
+	public static Timeline eventTimeline = new LocalTimeline(globalTimeline, 2);
+	public static Timeline physicsTimeline = new LocalTimeline(globalTimeline, 2);
+	public static Timeline networkTimeline = new LocalTimeline(globalTimeline, 12);
+	public static Timeline renderTimeline = new LocalTimeline(globalTimeline, 12);
 	public static EventManager eventManager = new EventManager();
 	public static ExecutorService threadPool = Executors.newFixedThreadPool(NUM_THREADS);
+	public static Replay replay = new Replay();
 
 
 	public static Player player;
@@ -73,6 +74,7 @@ public class Rectangles extends PApplet {
 	 */
 	public void runLoop() {
 		if (this.isServer) {
+			// Register moving objects
 			for (GameObj obj : movObjects) {
 				eventManager.registerHandler(obj, Event.EVENT_COLLISION);
 				eventManager.registerHandler(obj, Event.EVENT_MOVEMENT);
@@ -85,9 +87,15 @@ public class Rectangles extends PApplet {
 				HashMap<String, Object> data = new HashMap<>();
 				data.put("caller", obj.getUUID());
 				Event e = new Event(Event.EVENT_PHYSICS,
-						globalTimeline.getCurrentTime() + physicsTimeline.getTickSize(), data);
+						globalTimeline.getCurrentTime() + (long) physicsTimeline.getTickSize(), data);
 				eventManager.raiseEvent(e);
 			}
+			
+			// Register replays
+			eventManager.registerHandler(replay, Event.EVENT_INPUT);
+			eventManager.registerHandler(replay, Event.EVENT_MOVEMENT);
+			eventManager.registerHandler(replay, Event.EVENT_END_REPLAY);
+
 		}
 		while(true) {
 			this.gameLoop(globalTimeline.resetDelta());
@@ -270,7 +278,7 @@ public class Rectangles extends PApplet {
 	public void draw() {
 		background(0);
 		if (this.isServer) {
-			text("Deaths: " + deathPoints , 110, 40);
+			text("Server", 110, 40);
 		}
 
 		this.renderAll(objects);
@@ -298,7 +306,8 @@ public class Rectangles extends PApplet {
 	}
 
 	public void keyPressed() {
-		if (keyCode == LEFT || keyCode == RIGHT || key == ' ') {
+		if (keyCode == LEFT || keyCode == RIGHT || key == ' ' || key == 'r'
+				|| key == 's' || key == '1' || key == '2' || key == '3') {
 			if (this.isServer) {
 				HashMap<String, Object> data = new HashMap<>();
 				Event e = new Event(Event.EVENT_INPUT, globalTimeline.getCurrentTime(), data);

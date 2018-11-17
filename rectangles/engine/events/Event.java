@@ -8,8 +8,9 @@ public class Event {
 	public static final int EVENT_DEATH = 1;
 	public static final int EVENT_SPAWN = 2;
 	public static final int EVENT_MOVEMENT = 3;
-	public static final int EVENT_COLLISION = 4;
-	public static final int EVENT_PHYSICS = 5;
+	public static final int EVENT_END_REPLAY = 4;
+	public static final int EVENT_COLLISION = 5;
+	public static final int EVENT_PHYSICS = 6;
 
 	private int type = -1;
 	
@@ -44,5 +45,12 @@ public class Event {
 
 	public void setTime(long time) {
 		this.time = time;
+	}
+	
+	// Clone event
+	public Event(Event another) {
+		this.type = another.type;
+		this.time = another.time;
+		this.data = another.data;
 	}
 }
