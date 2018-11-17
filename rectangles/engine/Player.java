@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import engine.events.Event;
+import networking.Packet;
 import processing.core.PApplet;
 import processing.core.PConstants;
 import processing.core.PShape;
@@ -154,16 +155,21 @@ public class Player extends GameObj {
 			break;
 		case(Event.EVENT_INPUT):
 			if (((UUID) e.getData().get("caller")).equals(this.getUUID())) {
-				switch((int) e.getData().get("keyCode")) {
-				case(PConstants.LEFT):
-					this.getPy().setAccelerationX(-5);
-					break;
-				case(PConstants.RIGHT):
-					this.getPy().setAccelerationX(5);
-					break;
-				case(' '):
-					this.getPy().setAccelerationY(-20);
-					break;
+				if (Rectangles.isServer) {
+					switch ((int) e.getData().get("keyCode")) {
+					case (PConstants.LEFT):
+						this.getPy().setAccelerationX(-5);
+						break;
+					case (PConstants.RIGHT):
+						this.getPy().setAccelerationX(5);
+						break;
+					case (' '):
+						this.getPy().setAccelerationY(-20);
+						break;
+					}
+				} else {
+					Packet p = new Packet((int) e.getData().get("keyCode"), Rectangles.player.getUUID());
+					Rectangles.localClient.write(p);
 				}
 			}
 			break;

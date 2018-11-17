@@ -52,11 +52,11 @@ public class Rectangles extends PApplet {
 	public static int inputCounter = 0;
 
 
-	public static Player player;
-	
-	private boolean isServer;
+	public static Player player;	
+	public static boolean isServer;
+	public static Client localClient;
+
 	private Server server;
-	private Client localClient;
 	private GameObj floor;
 	private GameObj ceiling;
 	private GameObj leftWall;
@@ -106,17 +106,17 @@ public class Rectangles extends PApplet {
 
 		}
 		
-		if (!this.isServer) {
-			// Perf Testing
-			while (!registered) {
-				System.out.println("Waiting for player register");
-			}
-			startTime = globalTimeline.getCurrentTime();
-			for (int i = 0; i < inputTotal; i++) {
-				Packet p = new Packet(LEFT, player.getUUID());
-				this.localClient.write(p);
-			}
-		}
+//		if (!this.isServer) {
+//			// Perf Testing
+//			while (!registered) {
+//				System.out.println("Waiting for player register");
+//			}
+//			startTime = globalTimeline.getCurrentTime();
+//			for (int i = 0; i < inputTotal; i++) {
+//				Packet p = new Packet(LEFT, player.getUUID());
+//				localClient.write(p);
+//			}
+//		}
 		while(true) {
 			this.gameLoop(globalTimeline.resetDelta());
 		}
@@ -129,10 +129,10 @@ public class Rectangles extends PApplet {
 	private void gameLoop(boolean delta) {
 		if (delta) {
 			if (this.isServer) {
-				this.updateEvent(eventTimeline.resetDelta());
 				// this.updatePhysics(physicsTimeline.getAndResetDelta());
 				this.updateNetwork(networkTimeline.resetDelta());
 			}
+			this.updateEvent(eventTimeline.resetDelta());
 			this.updateRender(renderTimeline.resetDelta());
 		}
 	}
@@ -328,16 +328,11 @@ public class Rectangles extends PApplet {
 	public void keyPressed() {
 		if (keyCode == LEFT || keyCode == RIGHT || key == ' ' || key == 'r'
 				|| key == 's' || key == '1' || key == '2' || key == '3') {
-			if (this.isServer) {
-				HashMap<String, Object> data = new HashMap<>();
-				Event e = new Event(Event.EVENT_INPUT, globalTimeline.getCurrentTime(), data);
-				data.put("keyCode", keyCode);
-				data.put("caller", player.getUUID());
-				eventManager.raiseEvent(e);
-			} else {
-				Packet p = new Packet(keyCode, player.getUUID());
-				this.localClient.write(p);
-			}
+			HashMap<String, Object> data = new HashMap<>();
+			Event e = new Event(Event.EVENT_INPUT, globalTimeline.getCurrentTime(), data);
+			data.put("keyCode", keyCode);
+			data.put("caller", player.getUUID());
+			eventManager.raiseEvent(e);
 		}
 
 		if (key == 'p') {

@@ -155,6 +155,7 @@ public class Client implements Runnable {
 		public void run() {
 			// Just force processing
 			this.p = new Packet(this.client.inst, this.recv);
+			//System.out.println(p.toString());
 		}
 	}
 

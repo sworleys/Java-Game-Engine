@@ -207,6 +207,8 @@ public class Packet {
 			this.obj.setUUID(this.uuid);
 			Rectangles.objectMap.put(this.obj.getUUID(), this.obj);
 			Rectangles.objects.add(this.obj);
+			Rectangles.eventManager.registerHandler(this.obj, Event.EVENT_MOVEMENT);
+			Rectangles.eventManager.registerHandler(this.obj, Event.EVENT_INPUT);
 
 
 			break;
@@ -249,7 +251,7 @@ public class Packet {
 				if (this.uuid.equals(Rectangles.player.getUUID())) {
 					synchronized (Rectangles.lock) {
 						if (++Rectangles.inputCounter == Rectangles.inputTotal) {
-//							System.out.println("Counter: " + Rectangles.inputCounter);
+							//System.out.println("Counter: " + Rectangles.inputCounter);
 //							System.out.println("End: " + Rectangles.globalTimeline.getCurrentTime());
 							System.out.println("Time: " + (Rectangles.globalTimeline.getCurrentTime() - Rectangles.startTime));
 							System.exit(0);
@@ -261,8 +263,17 @@ public class Packet {
 			}
 			
 			try {
-			Rectangles.objectMap.get(this.uuid).getPy().getLocation()
-				.set(this.location[0], this.location[1]);
+				//System.out.println("Update recv");
+				HashMap<String, Object> data = new HashMap<>();
+				data.put("caller", this.uuid);
+				data.put("x", this.location[0]);
+				data.put("y", this.location[1]);
+				Event e = new Event(Event.EVENT_MOVEMENT, Rectangles.globalTimeline.getCurrentTime(), data);
+				Rectangles.eventManager.raiseEvent(e);
+				
+				//Rectangles.objectMap.get(this.uuid).getPy().getLocation()
+				//	.set(this.location[0], this.location[1]);
+
 			} catch (NullPointerException e) {
 				// Do nothing, update for object not yet created most likely
 			}
