@@ -1,9 +1,12 @@
 package engine;
 
 
+import java.io.File;
+import java.util.HashMap;
 import java.util.UUID;
 
 import engine.events.Event;
+import engine.scripting.ScriptManager;
 import processing.core.PApplet;
 
 public abstract class GameObj extends EngineObject {
@@ -66,5 +69,25 @@ public abstract class GameObj extends EngineObject {
 
 	public boolean isFloor() {
 		return this.isFloor;
+	}
+	
+	public void handleEvent(Event e) {
+		String script = new File("scripts/" + this.getType() + "_handler.js").getAbsolutePath();
+		ScriptManager.loadScript(script);
+		ScriptManager.executeScript("handle_event", this, e, Rectangles.objectMap);
+	}
+
+	public void raiseEvent(int type, long time, HashMap<String, Object> data) {
+		if (time < 0) {
+			time = Rectangles.globalTimeline.getCurrentTime()
+					+ (long) Rectangles.eventTimeline.getTickSize();
+		}
+		
+		if (type == Event.EVENT_PHYSICS) {
+			time += + (long) Rectangles.physicsTimeline.getTickSize();
+		}
+
+		Event e = new Event(type, time, data);
+		Rectangles.eventManager.raiseEvent(e);
 	}
 }

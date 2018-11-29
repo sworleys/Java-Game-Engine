@@ -5,11 +5,13 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import engine.events.Event;
+import engine.scripting.ScriptManager;
 import processing.core.PApplet;
 import processing.core.PVector;
 
@@ -41,12 +43,12 @@ public class Physics extends PApplet implements Shape {
 		this.mass = mass;
 	}
 
-	public void update(GameObj caller, CopyOnWriteArrayList<GameObj> objects) {
+	public void update(GameObj caller) {
 		//this.acceleration.setMag(0.2);
-		
+
 		GameObj collidedWith = null;
 		
-		for (GameObj obj : objects) {
+		for (GameObj obj : Rectangles.objects) {
 			if (this.intersects(obj.getPy().getBounds2D()) && !obj.getUUID().equals(caller.getUUID()) && !obj.getType().equals("player")) {
 				collidedWith = obj;
 				// TODO: Need break here?
@@ -202,5 +204,18 @@ public class Physics extends PApplet implements Shape {
 	public boolean intersects(double x, double y, double w, double h) {
 		// TODO Auto-generated method stub
 		return false;
+	}
+	
+	/*
+	 * Helper function for copying location in script
+	 */
+	public PVector copyLoc() {
+		return new PVector(this.getLocation().x, this.getLocation().y);
+	}
+	/*
+	 * Helper function for getting new location in script
+	 */
+	public PVector newLoc(float x, float y) {
+		return new PVector(x, y);
 	}
 }

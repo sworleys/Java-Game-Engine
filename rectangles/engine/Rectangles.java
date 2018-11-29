@@ -144,7 +144,7 @@ public class Rectangles extends PApplet {
 		if (delta && this.isServer) {
 			// Update physics
 			for (GameObj obj : movObjects) {
-				obj.getPy().update(obj, objects);
+				obj.getPy().update(obj);
 			}
 		}		
 	}

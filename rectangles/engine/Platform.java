@@ -123,7 +123,7 @@ public class Platform extends GameObj {
 			break;
 		case (Event.EVENT_PHYSICS):
 			if (((UUID) e.getData().get("caller")).equals(this.getUUID())) {
-				this.getPy().update(this, Rectangles.objects);
+				this.getPy().update(this);
 				HashMap<String, Object> data = new HashMap<>();
 				data.put("caller", this.getUUID());
 				Event py = new Event(Event.EVENT_PHYSICS, e.getTime() + (long) Rectangles.physicsTimeline.getTickSize(), data);

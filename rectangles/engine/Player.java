@@ -40,6 +40,12 @@ public class Player extends GameObj {
 		return serial;
 	}
 	
+	/*
+	 * Helper to get spawn for script
+	 */
+	public Spawn getRandomSpawn() {
+		return Rectangles.spawnPoints[Rectangles.generator.nextInt(2)];
+	}
 	
 	public static Player deSerial(PApplet inst, String serial) {
 		float dim = 0;
@@ -175,7 +181,7 @@ public class Player extends GameObj {
 			break;
 		case(Event.EVENT_PHYSICS):
 			if (((UUID) e.getData().get("caller")).equals(this.getUUID())) {
-				this.getPy().update(this, Rectangles.objects);
+				this.getPy().update(this);
 				HashMap<String, Object> data = new HashMap<>();
 				data.put("caller", this.getUUID());
 				Event py = new Event(Event.EVENT_PHYSICS, e.getTime() + (long) Rectangles.physicsTimeline.getTickSize(), data);
