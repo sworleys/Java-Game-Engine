@@ -2,6 +2,8 @@ package engine;
 
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -72,7 +74,19 @@ public abstract class GameObj extends EngineObject {
 	}
 	
 	public void handleEvent(Event e) {
-		String script = new File("scripts/" + this.getType() + "_handler.js").getAbsolutePath();
+		String file;
+		FileReader script = null;
+		try {
+			file = new File("scripts/" + this.getType() + "/handler.js").getAbsolutePath();
+			script = new FileReader(file);
+		} catch (FileNotFoundException e1) {
+			file = new File("scripts/handler.js").getAbsolutePath();
+			try {
+				script = new FileReader(file);
+			} catch (FileNotFoundException e2) {
+				e1.printStackTrace();
+			}
+		}
 		ScriptManager.loadScript(script);
 		ScriptManager.executeScript("handle_event", this, e, Rectangles.objectMap);
 	}
@@ -82,9 +96,8 @@ public abstract class GameObj extends EngineObject {
 			time = Rectangles.globalTimeline.getCurrentTime()
 					+ (long) Rectangles.eventTimeline.getTickSize();
 		}
-		
 		if (type == Event.EVENT_PHYSICS) {
-			time += + (long) Rectangles.physicsTimeline.getTickSize();
+			time += (long) Rectangles.physicsTimeline.getTickSize();
 		}
 
 		Event e = new Event(type, time, data);

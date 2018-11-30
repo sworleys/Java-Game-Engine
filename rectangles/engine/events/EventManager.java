@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EventObject;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.PriorityBlockingQueue;
 
 import org.w3c.dom.css.Rect;
@@ -29,14 +31,14 @@ public class EventManager implements Runnable {
 		}
 	};
 	
-	private HashMap<Integer, ArrayList<EngineObject>> registrar = new HashMap<>();
+	private HashMap<Integer, CopyOnWriteArrayList<EngineObject>> registrar = new HashMap<>();
 	private PriorityBlockingQueue<Event> eventQueue = new PriorityBlockingQueue<>(11, eventCompare);
 
 
 
 	public void registerHandler(EngineObject handler, int type) {
 		if (!this.registrar.containsKey(type)) {
-			this.registrar.put(type, new ArrayList<EngineObject>());
+			this.registrar.put(type, new CopyOnWriteArrayList<EngineObject>());
 		}
 		this.registrar.get(type).add(handler);
 	}
@@ -63,11 +65,11 @@ public class EventManager implements Runnable {
 		}
 	}
 
-	public HashMap<Integer, ArrayList<EngineObject>> getRegistrar() {
+	public HashMap<Integer, CopyOnWriteArrayList<EngineObject>> getRegistrar() {
 		return registrar;
 	}
 
-	public void setRegistrar(HashMap<Integer, ArrayList<EngineObject>> registrar) {
+	public void setRegistrar(HashMap<Integer, CopyOnWriteArrayList<EngineObject>> registrar) {
 		this.registrar = registrar;
 	}
 

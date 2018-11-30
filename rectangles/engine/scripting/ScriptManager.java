@@ -1,5 +1,7 @@
 package engine.scripting;
 
+import java.io.FileReader;
+
 import javax.script.*;
 
 /**
@@ -23,13 +25,11 @@ public class ScriptManager {
 	/**
 	 * Will load the script source from the provided filename.
 	 */
-	public static void loadScript(String script_name) {
+	public static void loadScript(FileReader script_name) {
 		try {
-			js_engine.eval(new java.io.FileReader(script_name));
+			js_engine.eval(script_name);
 		} catch (ScriptException se) {
 			se.printStackTrace();
-		} catch (java.io.IOException iox) {
-			iox.printStackTrace();
 		}
 	}
 

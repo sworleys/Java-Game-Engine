@@ -6,9 +6,13 @@ import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import org.w3c.dom.css.Rect;
 
 import engine.events.Event;
 import engine.scripting.ScriptManager;
@@ -44,55 +48,24 @@ public class Physics extends PApplet implements Shape {
 	}
 
 	public void update(GameObj caller) {
-		//this.acceleration.setMag(0.2);
-
-		GameObj collidedWith = null;
-		
-		for (GameObj obj : Rectangles.objects) {
-			if (this.intersects(obj.getPy().getBounds2D()) && !obj.getUUID().equals(caller.getUUID()) && !obj.getType().equals("player")) {
-				collidedWith = obj;
-				// TODO: Need break here?
-				break;
+		String file;
+		FileReader script = null;
+		try {
+			file = new File("scripts/" + caller.getType() + "/physics.js").getAbsolutePath();
+			script = new FileReader(file);
+		} catch (FileNotFoundException e1) {
+			file = new File("scripts/physics.js").getAbsolutePath();
+			try {
+				script = new FileReader(file);
+			} catch (FileNotFoundException e2) {
+				e1.printStackTrace();
 			}
 		}
-
-		/**
-		 * TODO: Implement here so that if collision occurs, no movement below, let collision event handle
-		 * raising a new movement event
-		 * 
-		 * else, just raise movement event here if object moved
-		 * 
-		 * In replays, just worry about movement events! :D
-		 */
-		
-		if (collidedWith != null) {
-			HashMap<String, Object> data = new HashMap<>();
-			data.put("caller", caller.getUUID());
-			data.put("collidedWith", collidedWith.getUUID());
-			// TODO: Could just make the collision event also be movement?
-			Event e = new Event(Event.EVENT_COLLISION, Rectangles.globalTimeline.getCurrentTime(), data);
-			Rectangles.eventManager.raiseEvent(e);
-		} else {
-			this.velocity.add(this.acceleration);
-			this.velocity.limit(this.topSpeed);
-			if (this.velocity.mag() > 0) {
-				PVector newLoc = new PVector(this.location.x, this.location.y);
-				newLoc.add(this.velocity);
-				HashMap<String, Object> data = new HashMap<>();
-				data.put("caller", caller.getUUID());
-				data.put("x", newLoc.x);
-				data.put("y", newLoc.y);
-				Event e = new Event(Event.EVENT_MOVEMENT, Rectangles.globalTimeline.getCurrentTime(), data);
-				Rectangles.eventManager.raiseEvent(e);
-				// Actually move
-				//this.location.add(this.velocity);
-			}
-		}
-
-		// Reset acceleration?
-		if (this.isGrav) {
-			this.acceleration = new PVector(0, GRAV);
-		}
+		ScriptManager.bindArgument("objects", Rectangles.objects);
+		ScriptManager.bindArgument("GRAV", GRAV);
+		ScriptManager.bindArgument("globalTimeline", Rectangles.globalTimeline);
+		ScriptManager.loadScript(script);
+		ScriptManager.executeScript("update", this, caller);
 	}
 	
 	// From processing tutorial forces with vectors
@@ -116,9 +89,13 @@ public class Physics extends PApplet implements Shape {
 	public void setAccelerationX(float x) {
 		this.acceleration.x = x;
 	}
-	
+
 	public void setAccelerationY(float y) {
 		this.acceleration.y = (y + GRAV);
+	}
+
+	public void resetAcceleration() {
+		this.acceleration = new PVector(0, GRAV);
 	}
 
 	public PVector getLocation() {
@@ -217,5 +194,9 @@ public class Physics extends PApplet implements Shape {
 	 */
 	public PVector newLoc(float x, float y) {
 		return new PVector(x, y);
+	}
+
+	public boolean isGrav() {
+		return isGrav;
 	}
 }

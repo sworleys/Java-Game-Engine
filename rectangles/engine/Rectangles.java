@@ -139,16 +139,6 @@ public class Rectangles extends PApplet {
 		}
 	}
 
-	private void updatePhysics(boolean delta) {
-		// Dummy Renderer?
-		if (delta && this.isServer) {
-			// Update physics
-			for (GameObj obj : movObjects) {
-				obj.getPy().update(obj);
-			}
-		}		
-	}
-
 	public void settings() {
 		size(640, 360);
 	}
