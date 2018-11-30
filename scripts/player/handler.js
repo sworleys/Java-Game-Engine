@@ -6,7 +6,7 @@ var EVENT = Java.type("engine.events.Event");
 
 
 function event_collision(self, e, object_map) {
-	if (e.getData().get("caller") == self.getUUID()) {
+	if (e.getData().get("caller").equals(self.getUUID())) {
 		var collidedWith = object_map.get(e.getData().get("collidedWith"));
 		if (collidedWith.isFloor()) {
 			self.getPy().getVelocity().y = -1;
@@ -47,7 +47,7 @@ function event_collision(self, e, object_map) {
 }
 
 function event_death(self, e) {
-	if (e.getData().get("caller") == self.getUUID()) {
+	if (e.getData().get("caller").equals(self.getUUID())) {
 		//Rectangles.deathPoints++;
 		var data = new (java.util.HashMap)();
 		data["caller"] = self.getUUID();
@@ -56,7 +56,7 @@ function event_death(self, e) {
 }
 
 function event_spawn(self, e) {
-	if (e.getData().get("caller") == self.getUUID()) {
+	if (e.getData().get("caller").equals(self.getUUID())) {
 		var s = self.getRandomSpawn();
 		var data = new (java.util.HashMap)();
 		data["caller"] = self.getUUID();
@@ -67,7 +67,7 @@ function event_spawn(self, e) {
 }
 
 function event_input(self, e) {
-	if (e.getData().get("caller") == self.getUUID()) {
+	if (e.getData().get("caller").equals(self.getUUID())) {
 		switch(e.getData().get("keyCode")) {
 		case 37:
 			self.getPy().setAccelerationX(-5);
@@ -83,7 +83,7 @@ function event_input(self, e) {
 }
 
 function event_movement(self, e) {
-	if (e.getData().get("caller") == self.getUUID()) {
+	if (e.getData().get("caller").equals(self.getUUID())) {
 		var newLoc = self.getPy().newLoc(e.getData().get("x"), 
 				e.getData().get("y"));
 		self.getPy().setLocation(newLoc);
@@ -91,7 +91,7 @@ function event_movement(self, e) {
 }
 
 function event_physics(self, e) {
-	if (e.getData().get("caller") == self.getUUID()) {
+	if (e.getData().get("caller").equals(self.getUUID())) {
 		self.getPy().update(self);
 		var data = new (java.util.HashMap)();
 		data["caller"] = self.getUUID();

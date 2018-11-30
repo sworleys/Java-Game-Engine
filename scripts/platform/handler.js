@@ -1,5 +1,5 @@
 /**
- * Player event handler
+ * Platform event handler
  */
 
 var EVENT = Java.type("engine.events.Event");
