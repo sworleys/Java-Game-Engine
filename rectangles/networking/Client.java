@@ -39,9 +39,6 @@ public class Client implements Runnable {
 		this.inst = inst;
 		this.threadPool = threadPool;
 		this.player = player;
-		Rectangles.objectMap.put(player.getUUID(), player);
-		Rectangles.objects.add(player);
-		Rectangles.movObjects.add(player);
 	}
 	
 	public Client(PApplet inst, Socket s, ExecutorService threadPool, Player player) {
@@ -90,7 +87,6 @@ public class Client implements Runnable {
 		return this.state;
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	/*
 	 * Listening socket thread for each client (non-Javadoc) ExecutorService
@@ -142,7 +138,6 @@ public class Client implements Runnable {
 	 *
 	 */
 	private class ClientRead implements Runnable {
-		private Packet p;
 		private Client client;
 		private String recv;
 
@@ -154,7 +149,7 @@ public class Client implements Runnable {
 		@Override
 		public void run() {
 			// Just force processing
-			this.p = new Packet(this.client.inst, this.recv);
+			new Packet(this.client.inst, this.recv);
 		}
 	}
 

@@ -93,8 +93,7 @@ public class Rectangles extends PApplet {
 				}
 				HashMap<String, Object> data = new HashMap<>();
 				data.put("caller", obj.getUUID());
-				Event e = new Event(Event.EVENT_PHYSICS,
-						globalTimeline.getCurrentTime() + (long) physicsTimeline.getTickSize(), data);
+				Event e = new Event(Event.EVENT_PHYSICS, physicsTimeline.getCurrentTime(), data);
 				eventManager.raiseEvent(e);
 			}
 			
@@ -117,7 +116,6 @@ public class Rectangles extends PApplet {
 		if (delta) {
 			if (this.isServer) {
 				this.updateEvent(eventTimeline.resetDelta());
-				// this.updatePhysics(physicsTimeline.getAndResetDelta());
 				this.updateNetwork(networkTimeline.resetDelta());
 			}
 			this.updateRender(renderTimeline.resetDelta());
@@ -177,7 +175,6 @@ public class Rectangles extends PApplet {
 			objects.add(this.rightWall);
 			objectMap.put(this.rightWall.getUUID(), this.rightWall);
 
-
 			
 			/**
 			 * Begin game definitions
@@ -206,7 +203,7 @@ public class Rectangles extends PApplet {
 			/**
 			 * End game definitions
 			 */
-			
+
 			
 			// Server
 			this.server = new Server(this, 9200, Rectangles.threadPool, player);
@@ -295,9 +292,6 @@ public class Rectangles extends PApplet {
 
 	public void setPlayer(Player p) {
 		player = p;
-		objectMap.put(player.getUUID(), player);
-		objects.add(player);
-		movObjects.add(player);
 	}
 	
 	// API stuff from https://happycoding.io/tutorials/java/processing-in-java

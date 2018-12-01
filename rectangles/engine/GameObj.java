@@ -92,15 +92,27 @@ public abstract class GameObj extends EngineObject {
 	}
 
 	public void raiseEvent(int type, long time, HashMap<String, Object> data) {
-		if (time < 0) {
-			time = Rectangles.globalTimeline.getCurrentTime()
-					+ (long) Rectangles.eventTimeline.getTickSize();
-		}
-		if (type == Event.EVENT_PHYSICS) {
-			time += (long) Rectangles.physicsTimeline.getTickSize();
-		}
+//		if (time < 0) {
+//			time = Rectangles.globalTimeline.getCurrentTime()
+//					+ (long) Rectangles.eventTimeline.getTickSize();
+//		}
+//		if (type == Event.EVENT_PHYSICS) {
+//			time += (long) Rectangles.physicsTimeline.getTickSize();
+//		}
 
+//		for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
+//		    System.out.println(ste);
+//		}
 		Event e = new Event(type, time, data);
+		if (!data.get("caller").equals(Rectangles.player.getUUID()) && e.getType() == Event.EVENT_PHYSICS) {
+			//System.out.println("platform" + e.getTime());
+		}
+		if (data.get("caller").equals(Rectangles.player.getUUID()) && e.getType() == Event.EVENT_PHYSICS) {
+			//System.out.println(e.getTime());
+		}
+		
 		Rectangles.eventManager.raiseEvent(e);
+		//System.out.println(Rectangles.player.getUUID());
+		//System.out.println(e.getData().get("caller") + " : " + e.getType() + " : " + e.getTime());
 	}
 }

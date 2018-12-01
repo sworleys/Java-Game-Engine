@@ -32,6 +32,9 @@ objectMap.put(dz_1.getUUID(), dz_1);
 var rand = spawnPoints[generator.nextInt(2)];
 player = new Player(self, sqrDim, rand.getPy().getLocation().x,
 		rand.getPy().getLocation().y);
+	objects.add(player);
+	objectMap.put(player.getUUID(), player);
+	movObjects.add(player);
 
 self.setPlayer(player);
 
@@ -67,13 +70,11 @@ for each (var p in staticPlatforms) {
 	objectMap.put(p.getUUID(), p);
 
 }
-
 for each (var p in movPlatforms) {
 	objects.add(p);
 	objectMap.put(p.getUUID(), p);
 	movObjects.add(p);
 }
-
 
 
 

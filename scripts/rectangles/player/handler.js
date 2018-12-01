@@ -62,7 +62,7 @@ function event_spawn(self, e) {
 		data["caller"] = self.getUUID();
 		data["x"] = s.getPy().getLocation().x;
 		data["y"] = s.getPy().getLocation().y;
-		self.raiseEvent(EVENT.EVENT_MOVEMENT, -1, data);
+		self.raiseEvent(EVENT.EVENT_MOVEMENT, e.getTime(), data);
 	}
 }
 
@@ -95,7 +95,7 @@ function event_physics(self, e) {
 		self.getPy().update(self);
 		var data = new (java.util.HashMap)();
 		data["caller"] = self.getUUID();
-		self.raiseEvent(EVENT.EVENT_PHYSICS, e.getTime(), data);
+		self.raiseEvent(EVENT.EVENT_PHYSICS, e.getTime() + 1, data);
 	}
 }
 
