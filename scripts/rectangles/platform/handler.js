@@ -25,6 +25,7 @@ function event_collision(self, e, object_map) {
 
 function event_movement(self, e) {
 	if (e.getData().get("caller") == self.getUUID()) {
+		//print("platform movement");
 		var newLoc = self.getPy().newLoc(e.getData().get("x"), 
 				e.getData().get("y"));
 		self.getPy().setLocation(newLoc);

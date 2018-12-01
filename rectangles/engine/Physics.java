@@ -51,10 +51,10 @@ public class Physics extends PApplet implements Shape {
 		String file;
 		FileReader script = null;
 		try {
-			file = new File("scripts/" + caller.getType() + "/physics.js").getAbsolutePath();
+			file = new File("scripts/" + Rectangles.game + "/" + caller.getType() + "/physics.js").getAbsolutePath();
 			script = new FileReader(file);
 		} catch (FileNotFoundException e1) {
-			file = new File("scripts/physics.js").getAbsolutePath();
+			file = new File("scripts/" + Rectangles.game + "/physics.js").getAbsolutePath();
 			try {
 				script = new FileReader(file);
 			} catch (FileNotFoundException e2) {

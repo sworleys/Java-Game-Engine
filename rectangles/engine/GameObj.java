@@ -77,10 +77,10 @@ public abstract class GameObj extends EngineObject {
 		String file;
 		FileReader script = null;
 		try {
-			file = new File("scripts/" + this.getType() + "/handler.js").getAbsolutePath();
+			file = new File("scripts/" + Rectangles.game + "/" + this.getType() + "/handler.js").getAbsolutePath();
 			script = new FileReader(file);
 		} catch (FileNotFoundException e1) {
-			file = new File("scripts/handler.js").getAbsolutePath();
+			file = new File("scripts/"  + Rectangles.game + "/handler.js").getAbsolutePath();
 			try {
 				script = new FileReader(file);
 			} catch (FileNotFoundException e2) {
