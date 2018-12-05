@@ -33,6 +33,7 @@ function event_movement(self, e) {
 }
 
 function event_physics(self, e) {
+	return
 	if (e.getData().get("caller") == self.getUUID()) {
 		self.getPy().update(self);
 		var data = new (java.util.HashMap)();

@@ -70,10 +70,16 @@ function event_input(self, e) {
 	if (e.getData().get("caller").equals(self.getUUID())) {
 		switch(e.getData().get("keyCode")) {
 		case 37:
-			self.getPy().setAccelerationX(-5);
 			break;
 		case 39:
-			self.getPy().setAccelerationX(5);
+			print("right");
+			var inst = self.getRend().getInst();
+			inst.translate(width/2, height/2);
+			inst.rotate(25);
+//			self.getPy().getVelocity().rotate(25);
+//			self.getRend().getShape().translate(self.getObjWidth()/2,
+//						self.getObjHeight()/2);
+//			self.getRend().getShape().rotate(25);
 			break;
 		case 32:
 			self.getPy().setAccelerationY(-20);
@@ -91,6 +97,7 @@ function event_movement(self, e) {
 }
 
 function event_physics(self, e) {
+	return
 	if (e.getData().get("caller").equals(self.getUUID())) {
 		self.getPy().update(self);
 		var data = new (java.util.HashMap)();

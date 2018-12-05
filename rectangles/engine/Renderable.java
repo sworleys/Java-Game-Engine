@@ -19,6 +19,10 @@ public class Renderable {
 		this.shape.setStroke(false);
 	}
 
+	public PApplet getInst() {
+		return inst;
+	}
+	
 	public PShape getShape() {
 		return shape;
 	}
