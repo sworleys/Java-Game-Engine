@@ -49,6 +49,7 @@ public class Rectangles extends PApplet {
 	public static Replay replay = new Replay();
 
 
+
 	public static Player player;
 	public static String game;
 	
@@ -61,6 +62,7 @@ public class Rectangles extends PApplet {
 	private GameObj rightWall;
 
 	private boolean setup = false;
+	public static Object lock = new Object();
 
 	
 	public Rectangles(String game, boolean isServer) {
@@ -85,16 +87,12 @@ public class Rectangles extends PApplet {
 			for (GameObj obj : movObjects) {
 				eventManager.registerHandler(obj, Event.EVENT_COLLISION);
 				eventManager.registerHandler(obj, Event.EVENT_MOVEMENT);
-				eventManager.registerHandler(obj, Event.EVENT_PHYSICS);
+				eventManager.registerHandler(obj, Event.EVENT_INPUT);
+				eventManager.registerHandler(obj, Event.EVENT_DEATH);
+
 				if (obj.getType() == "player") {
-					eventManager.registerHandler(obj, Event.EVENT_INPUT);
-					eventManager.registerHandler(obj, Event.EVENT_DEATH);
 					eventManager.registerHandler(obj, Event.EVENT_SPAWN);
 				}
-				HashMap<String, Object> data = new HashMap<>();
-				data.put("caller", obj.getUUID());
-				Event e = new Event(Event.EVENT_PHYSICS, physicsTimeline.getCurrentTime(), data);
-				eventManager.raiseEvent(e);
 			}
 			
 			// Register replays
@@ -148,6 +146,7 @@ public class Rectangles extends PApplet {
 	}
 
 	public void setup() {
+		synchronized (lock) {
 		background(0);
 		// Just set to be unreasonably high
 		frameRate(1000);
@@ -228,6 +227,7 @@ public class Rectangles extends PApplet {
 		}
 		
 		this.setup = true;
+		}
 	}
 
 	public void draw() {
@@ -305,8 +305,10 @@ public class Rectangles extends PApplet {
 			sketch = new Rectangles(args[0].toLowerCase(), false);
 		}
 		PApplet.runSketch(processingArgs, sketch);
+		
 		while (!sketch.isSetup()) {
-			System.out.println("Waiting...");
+			synchronized (lock) {
+			}
 		}
 		sketch.runLoop();
 	}

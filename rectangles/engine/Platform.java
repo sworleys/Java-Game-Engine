@@ -11,6 +11,7 @@ import processing.core.PVector;
 public class Platform extends GameObj {
 	private boolean movable;
 	private PApplet inst;
+	private boolean queued = false;
 
 	public Platform(PApplet inst, float width, float height, float x, float y, boolean movable) {
 		super(width, height, 0, x, y, false, false);
@@ -23,6 +24,32 @@ public class Platform extends GameObj {
 	@Override
 	public String getType() {
 		return "platform";
+	}
+	
+	public boolean isQueued() {
+		return this.queued;
+	}
+	
+	public void setQueued(boolean val) {
+		this.queued = val;
+	}
+	
+	public void register() {
+		Rectangles.eventManager.registerHandler(this, Event.EVENT_COLLISION);
+		Rectangles.eventManager.registerHandler(this, Event.EVENT_COLLISION);
+		Rectangles.eventManager.registerHandler(this, Event.EVENT_PHYSICS);
+		Rectangles.eventManager.registerHandler(this, Event.EVENT_INPUT);
+		Rectangles.eventManager.registerHandler(this, Event.EVENT_DEATH);
+		Rectangles.eventManager.registerHandler(this, Event.EVENT_SPAWN);
+	}
+	
+	public void registerPhysics() {
+		Rectangles.eventManager.registerHandler(this, Event.EVENT_PHYSICS);
+	}
+
+	
+	public float[] getAim() {
+		return Rectangles.player.getAim();
 	}
 	
 	public boolean isMovable() {

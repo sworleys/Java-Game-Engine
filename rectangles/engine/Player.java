@@ -44,7 +44,7 @@ public class Player extends GameObj {
 	 * Helper to get spawn for script
 	 */
 	public Spawn getRandomSpawn() {
-		return Rectangles.spawnPoints[Rectangles.generator.nextInt(2)];
+		return Rectangles.spawnPoints[Rectangles.generator.nextInt(Rectangles.spawnPoints.length)];
 	}
 	
 	public void draw() {
@@ -55,13 +55,23 @@ public class Player extends GameObj {
 	//	if (obj.getRotation() != 0) {
 		this.getRend().getInst().translate(this.getRend().getInst().width/2, this.getRend().getInst().height);
 		this.getRend().getInst().rotate(PApplet.radians(getRotation()));
-		System.out.println(Math.cos(PApplet.radians(getRotation())) + ":" + Math.sin(PApplet.radians(getRotation())));
+		//System.out.println(Math.cos(PApplet.radians(getRotation())) + ":" + Math.sin(PApplet.radians(getRotation())));
 		//}
 	//}
 		this.getRend().getInst().shape(getRend().getShape(), 100, 0);
 	//if (obj.getType() == "player") {
 		this.getRend().getInst().popMatrix();
 	//}
+	}
+
+	
+	/**
+	 * Aim vector based on the scope
+	 * @return aim vector
+	 */
+	public float[] getAim() {
+		float[] aim = {(float) Math.cos(PApplet.radians(getRotation())), (float) Math.sin(PApplet.radians(getRotation()))};
+		return aim;
 	}
 	
 	public static Player deSerial(PApplet inst, String serial) {

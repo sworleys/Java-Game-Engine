@@ -101,6 +101,10 @@ public abstract class GameObj extends EngineObject {
 				e1.printStackTrace();
 			}
 		}
+		ScriptManager.bindArgument("spawnPoints", Rectangles.spawnPoints);
+		ScriptManager.bindArgument("objectMap", Rectangles.objectMap);
+		ScriptManager.bindArgument("objects", Rectangles.objects);
+		ScriptManager.bindArgument("movObjects", Rectangles.movObjects);
 		ScriptManager.loadScript(script);
 		ScriptManager.executeScript("handle_event", this, e, Rectangles.objectMap);
 	}

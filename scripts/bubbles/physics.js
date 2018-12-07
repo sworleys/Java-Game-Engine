@@ -21,7 +21,7 @@ function update(self, caller) {
 		data["collidedWith"] = collidedWith.getUUID();
 		caller.raiseEvent(EVENT.EVENT_COLLISION, globalTimeline.getCurrentTime(), data);
 	} else {
-		self.velocity.add(self.acceleration);
+		//self.velocity.add(self.acceleration);
 		self.velocity.limit(self.topSpeed);
 		if (self.velocity.mag() > 0) {
 			var newLoc = self.copyLoc();
@@ -32,10 +32,5 @@ function update(self, caller) {
 			data["y"] = newLoc.y;
 			caller.raiseEvent(EVENT.EVENT_MOVEMENT, globalTimeline.getCurrentTime(), data);
 		}
-	}
-
-	// Reset acceleration?
-	if (self.isGrav()) {
-		self.resetAcceleration();
 	}
 }
