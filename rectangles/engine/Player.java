@@ -47,6 +47,23 @@ public class Player extends GameObj {
 		return Rectangles.spawnPoints[Rectangles.generator.nextInt(2)];
 	}
 	
+	public void draw() {
+		//if (obj.getType() == "player") {
+		this.getRend().getInst().pushMatrix();
+		//this.translate(obj.getPy().getLocation().x,
+			//obj.getPy().getLocation().y);
+	//	if (obj.getRotation() != 0) {
+		this.getRend().getInst().translate(this.getRend().getInst().width/2, this.getRend().getInst().height);
+		this.getRend().getInst().rotate(PApplet.radians(getRotation()));
+		System.out.println(Math.cos(PApplet.radians(getRotation())) + ":" + Math.sin(PApplet.radians(getRotation())));
+		//}
+	//}
+		this.getRend().getInst().shape(getRend().getShape(), 100, 0);
+	//if (obj.getType() == "player") {
+		this.getRend().getInst().popMatrix();
+	//}
+	}
+	
 	public static Player deSerial(PApplet inst, String serial) {
 		float dim = 0;
 		float x = 0;

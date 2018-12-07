@@ -247,7 +247,7 @@ public class Rectangles extends PApplet {
 	
 	public void render(GameObj obj) {
 		if (obj.getRend() != null) {
-			shape(obj.getRend().getShape(), obj.getPy().getLocation().x, obj.getPy().getLocation().y);
+			obj.draw();
 		}
 	}
 

@@ -2,7 +2,10 @@
  * Player event handler
  */
 
+
 var EVENT = Java.type("engine.events.Event");
+var PApplet = Java.type("processing.core.PVector");
+
 
 
 function event_collision(self, e, object_map) {
@@ -72,14 +75,23 @@ function event_input(self, e) {
 		case 37:
 			break;
 		case 39:
-			print("right");
 			var inst = self.getRend().getInst();
-			inst.translate(width/2, height/2);
-			inst.rotate(25);
+//			inst.pushMatrix();
+//			inst.translate(self.getPy().getLocation().x + self.getObjWidth(),
+//					self.getPy().getLocation().y + self.getObjHeight())
+//			inst.rotate(inst.radians(25));
+			
+//			inst.popMatrix();
+			//self.getRend().rotate(25);
+//			self.rotate(25);
+			//self.getRend().getShape().translate((-1)*self.getObjWidth()/2, (-1)*self.getObjHeight()/2);			
+			//self.getRend().getShape().rotate(0.43);
+			//self.getRend().getShape().translate((-1)*self.getObjWidth()/2, (-1)*self.getObjHeight()/2);			
 //			self.getPy().getVelocity().rotate(25);
 //			self.getRend().getShape().translate(self.getObjWidth()/2,
 //						self.getObjHeight()/2);
 //			self.getRend().getShape().rotate(25);
+			self.rotate(25);
 			break;
 		case 32:
 			self.getPy().setAccelerationY(-20);

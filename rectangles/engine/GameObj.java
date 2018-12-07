@@ -17,6 +17,7 @@ public abstract class GameObj extends EngineObject {
 	private float objWidth;
 	private float objHeight;
 	private boolean isFloor;
+	private int rotated = 0;
 
 	private UUID uuid = UUID.randomUUID();
 
@@ -26,7 +27,7 @@ public abstract class GameObj extends EngineObject {
 		this.objHeight = objHeight;
 		this.objWidth = objWidth;
 		this.py = new Physics(x, y, objWidth, objHeight, mass, 20, isGrav);
-		
+
 	}
 	
 	public abstract String getType();
@@ -37,6 +38,14 @@ public abstract class GameObj extends EngineObject {
 		return this.rend;
 	}
 
+	public void rotate(int angle) {
+		this.rotated += angle;
+	}
+	
+	public int getRotation() {
+		return this.rotated;
+	}
+	
 	public UUID getUUID() {
 		return this.uuid;
 	}
@@ -71,6 +80,11 @@ public abstract class GameObj extends EngineObject {
 
 	public boolean isFloor() {
 		return this.isFloor;
+	}
+	
+	public void draw() {
+		this.rend.getInst().shape(this.getRend().getShape(),
+				this.getPy().getLocation().x, this.getPy().getLocation().y);
 	}
 	
 	public void handleEvent(Event e) {

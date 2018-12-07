@@ -27,11 +27,11 @@ movObjects.add(player);
 
 self.setPlayer(player);
 
-// Scope
-scope = new Player(self, sqrDim, width / 2, height - scope_dist - sqrDim);
-objects.add(scope);
-objectMap.put(scope.getUUID(), scope);
-movObjects.add(scope);
+//// Scope
+//scope = new Player(self, sqrDim, width / 2, height - scope_dist - sqrDim);
+//objects.add(scope);
+//objectMap.put(scope.getUUID(), scope);
+//movObjects.add(scope);
 
 // Bubbles
 var pWidth = sqrDim;
