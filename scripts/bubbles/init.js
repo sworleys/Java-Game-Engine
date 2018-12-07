@@ -50,11 +50,11 @@ spawnPoints[0] =  new Spawn(self, width / 2, height - sqrDim);
 
 // Queued Bubble
 scope = new Platform(self, pWidth, pHeight, spawnPoints[0].getPy().getLocation().x, 
-		spawnPoints[0].getPy().getLocation().y, false);
-var random_int = Math.floor(Math.random() * 5);
+		spawnPoints[0].getPy().getLocation().y, true);
+var random_int = Math.floor(Math.random() * 4);
 scope.getRend().setColor(bubble_colors[random_int]);
 scope.setQueued(true);
-scope.getPy().setTopSpeed(5);
+scope.getPy().setTopSpeed(2);
 objects.add(scope);
 objectMap.put(scope.getUUID(), scope);
 movObjects.add(scope);

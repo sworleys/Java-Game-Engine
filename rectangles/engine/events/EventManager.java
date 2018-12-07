@@ -55,7 +55,7 @@ public class EventManager implements Runnable {
 	public void run() {
 		synchronized (eventQueue) {
 			Event next = this.eventQueue.poll();
-			// System.out.println(this.eventQueue.size());
+			//System.out.println(this.eventQueue.size());
 			// System.out.println(next.getType() + " : " +
 			// Rectangles.objectMap.get(next.getData().get("caller")).getType());
 			// System.out.println(next.getData().getOrDefault("isReplay", false));

@@ -35,6 +35,7 @@ public class Player extends GameObj {
 				+ "dim:" + this.dim + ","
 				+ "x:" + this.getPy().getLocation().x + ","
 				+ "y:" + this.getPy().getLocation().y + ","
+				+ "rotation:" + this.getRotation() + ","
 				+ "color:" + this.rend.getColorToString()
 				+ "}";
 		return serial;
@@ -78,6 +79,7 @@ public class Player extends GameObj {
 		float dim = 0;
 		float x = 0;
 		float y = 0;
+		int rotation = 0;
 		int[] color = new int[3];
 
 		serial = serial.replace("{", "").replace("}", "");
@@ -98,6 +100,8 @@ public class Player extends GameObj {
 			case("y"):
 				y = Float.parseFloat(value);
 				break;
+			case("rotation"):
+				rotation = Integer.parseInt(value);
 			case("color"):
 				value = value.replace("[", "").replace("]", "");
 				int i = 0;
@@ -111,6 +115,7 @@ public class Player extends GameObj {
 			}
 		}
 		Player res = new Player(inst, dim, x, y);
+		res.setRotation(rotation);
 		res.rend.setColor(color);
 		return res;
 	}

@@ -56,7 +56,7 @@ public class Client implements Runnable {
 			e.printStackTrace();
 		}
 		try {
-			this.output = new DataOutputStream(this.getSocket().getOutputStream());
+			this.setOutput(new DataOutputStream(this.getSocket().getOutputStream()));
 		} catch (IOException e) {
 			System.out.println("Error opening output stream for socket: " + this.socket.toString());
 			e.printStackTrace();
@@ -162,10 +162,9 @@ public class Client implements Runnable {
 
 		@Override
 		public void run() {
-			synchronized (this.getClient().output) {
+			synchronized (this.getClient().getOutput()) {
 				try {
-					//System.out.println("Sent: " + p.getSerialData());
-					this.getClient().output.writeUTF(p.getSerialData());
+					this.getClient().getOutput().writeUTF(p.getSerialData());
 				} catch (SocketException e) {
 					// Ignore client has just disconnected
 				} catch (IOException e) {
@@ -186,5 +185,13 @@ public class Client implements Runnable {
 			Packet p = new Packet(Packet.PACKET_UPDATE, Rectangles.player);
 			this.threadPool.execute(new ClientWrite(p));
 		}
+	}
+
+	public DataOutputStream getOutput() {
+		return output;
+	}
+
+	public void setOutput(DataOutputStream output) {
+		this.output = output;
 	}
 }

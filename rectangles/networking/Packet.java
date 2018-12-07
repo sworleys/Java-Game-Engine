@@ -20,12 +20,14 @@ public class Packet {
 	public static final int PACKET_UPDATE = 2;
 	public static final int PACKET_DESTROY = 3;
 	public static final int PACKET_KEY_PRESS = 4;
+	public static final int PACKET_GAME_OVER = 5;
 
 	private int type = -1;
 	private UUID uuid;
 	private HashMap<String, Object> data;
 	private GameObj obj;
 	private float[] location;
+	private int rotation;
 	private PApplet inst;
 	private int keyPress;
 
@@ -45,6 +47,7 @@ public class Packet {
 			// For now, choosing arguments; test with objects later
 			this.create(obj);
 			break;
+		case(PACKET_GAME_OVER):
 		case (PACKET_DESTROY):
 			// Do nothing
 			// Just need type and UUID
@@ -56,6 +59,7 @@ public class Packet {
 			break;
 		}
 	}
+	
 	
 	public Packet(int key, UUID uuid) {
 		this.type = PACKET_KEY_PRESS;
@@ -108,6 +112,7 @@ public class Packet {
 	private void update(GameObj obj) {
 		this.data.put("x", obj.getPy().getLocation().x);
 		this.data.put("y", obj.getPy().getLocation().y);
+		this.data.put("rotation", obj.getRotation());
 	}
 	
 	public HashMap<String, Object> getData() {
@@ -127,13 +132,14 @@ public class Packet {
 			serial = serial + "object_type:" + this.data.get("object_type") + "|"
 					+ obj.toSerial();
 			break;
+		case(PACKET_GAME_OVER):
 		case (PACKET_DESTROY):
 			// Do nothing
 			// Just need type and UUID
 			break;
 		case (PACKET_UPDATE):
 			serial = serial + "x:" + this.obj.getPy().getLocation().x + ","
-					+ "y:" + this.obj.getPy().getLocation().y;
+					+ "y:" + this.obj.getPy().getLocation().y + "," + "rotation:" + this.obj.getRotation();
 			break;
 		case(PACKET_KEY_PRESS):
 			serial = serial + "key:" + this.keyPress;
@@ -239,6 +245,8 @@ public class Packet {
 				case ("y"):
 					this.location[1] = Float.parseFloat(value);
 					break;
+				case("rotation"):
+					this.rotation = Integer.parseInt(value);
 				default:
 					break;
 				}
@@ -246,6 +254,7 @@ public class Packet {
 			try {
 			Rectangles.objectMap.get(this.uuid).getPy().getLocation()
 				.set(this.location[0], this.location[1]);
+			Rectangles.objectMap.get(this.uuid).setRotation(this.rotation);
 			} catch (NullPointerException e) {
 				// Do nothing, update for object not yet created most likely
 			}
@@ -258,11 +267,19 @@ public class Packet {
 			data.put("caller", this.uuid);
 			Rectangles.eventManager.raiseEvent(e);
 			break;
+		case (PACKET_GAME_OVER):
+			System.out.println("You lose");
+			inst.exit();
+			break;
 		default:
 			break;
 		}
 	}
 
+	public int getRotation() {
+		return rotation;
+	}
+	
 	public int getType() {
 		return type;
 	}

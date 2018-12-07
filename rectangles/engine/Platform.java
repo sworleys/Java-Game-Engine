@@ -3,14 +3,16 @@ package engine;
 import java.util.HashMap;
 import java.util.UUID;
 
+import org.w3c.dom.css.Rect;
+
 import engine.events.Event;
+import networking.Packet;
 import processing.core.PApplet;
 import processing.core.PShape;
 import processing.core.PVector;
 
 public class Platform extends GameObj {
 	private boolean movable;
-	private PApplet inst;
 	private boolean queued = false;
 
 	public Platform(PApplet inst, float width, float height, float x, float y, boolean movable) {
@@ -34,17 +36,27 @@ public class Platform extends GameObj {
 		this.queued = val;
 	}
 	
-	public void register() {
-		Rectangles.eventManager.registerHandler(this, Event.EVENT_COLLISION);
-		Rectangles.eventManager.registerHandler(this, Event.EVENT_COLLISION);
-		Rectangles.eventManager.registerHandler(this, Event.EVENT_PHYSICS);
+	public Renderable getRend() {
+		return this.rend;
+	}
+	
+	public void registerInput() {
 		Rectangles.eventManager.registerHandler(this, Event.EVENT_INPUT);
-		Rectangles.eventManager.registerHandler(this, Event.EVENT_DEATH);
-		Rectangles.eventManager.registerHandler(this, Event.EVENT_SPAWN);
+	}
+	
+	public void gameEnd(String s) {
+		Packet p = new Packet(Packet.PACKET_GAME_OVER, this);
+		System.out.println("Sending game over");
+		Rectangles.server.sendPacketNow(p);
+		//System.out.println(s);
+		rend.getInst().exit();
 	}
 	
 	public void registerPhysics() {
+		Rectangles.eventManager.registerHandler(this, Event.EVENT_COLLISION);
+		Rectangles.eventManager.registerHandler(this, Event.EVENT_MOVEMENT);
 		Rectangles.eventManager.registerHandler(this, Event.EVENT_PHYSICS);
+		Rectangles.eventManager.registerHandler(this, Event.EVENT_DEATH);
 	}
 
 	

@@ -60,38 +60,17 @@ public class Server extends PApplet implements Runnable {
 			
 			Spawn s = Rectangles.spawnPoints[r.nextInt(2)];
 
-			Client client = new Client(this.inst, clientSocket, this.threadPool, new Player(inst, Rectangles.player.getDim(),
-					s.getPy().getLocation().x, s.getPy().getLocation().y));
+			Client client = new Client(this.inst, clientSocket, this.threadPool, Rectangles.player);
 
 			for (GameObj obj : Rectangles.objects) {
-				Packet p = new Packet(Packet.PACKET_CREATE, obj);
-				client.write(p);
+				if (obj.getType() != "player") {
+					Packet p = new Packet(Packet.PACKET_CREATE, obj);
+					client.write(p);
+				}
 			}
-			Packet p = new Packet(Packet.PACKET_CREATE, client.getPlayer());
-			for (Client c : this.clients) {
-				c.write(p);
-			}
-			Rectangles.objectMap.put(client.getPlayer().getUUID(), client.getPlayer());
-			Rectangles.objects.add(client.getPlayer());
-			Rectangles.movObjects.add(client.getPlayer());
-			
-			// Register player for events
-			Rectangles.eventManager.registerHandler(client.getPlayer(), Event.EVENT_COLLISION);
-			Rectangles.eventManager.registerHandler(client.getPlayer(), Event.EVENT_MOVEMENT);
-			Rectangles.eventManager.registerHandler(client.getPlayer(), Event.EVENT_PHYSICS);
-			Rectangles.eventManager.registerHandler(client.getPlayer(), Event.EVENT_INPUT);
-			Rectangles.eventManager.registerHandler(client.getPlayer(), Event.EVENT_DEATH);
-			Rectangles.eventManager.registerHandler(client.getPlayer(), Event.EVENT_SPAWN);
-			
-			// Start physics processing for new player
-			HashMap<String, Object> data = new HashMap<>();
-			data.put("caller", client.getPlayer().getUUID());
-			Event e = new Event(Event.EVENT_PHYSICS, 0, data);
-			Rectangles.eventManager.raiseEvent(e);
-			
 			
 			// Send back register packet to client
-			p = new Packet(Packet.PACKET_REGISTER, client.getPlayer());
+			Packet p = new Packet(Packet.PACKET_REGISTER, client.getPlayer());
 			client.write(p);
 			synchronized (this.clients) {
 				this.clients.add(client);
@@ -117,13 +96,31 @@ public class Server extends PApplet implements Runnable {
 		this.packetQueue.add(new Packet(type, obj));
 	}
 
+	public void addPacket(Packet p) {
+		this.packetQueue.add(p);
+	}
 
+	public void sendPacketNow(Packet p) {
+		for (Client client : this.clients) {
+			try {
+				client.getOutput().writeUTF(p.getSerialData());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	
 	public Client getLocalClient() {
 		return this.localClient;
 	}
 
 	public void updateClients() {
 		this.threadPool.execute(new UpdateClients(this.clients));
+	}
+	
+	public ConcurrentLinkedQueue<Packet> getPacketQueue() {
+		return this.packetQueue;
 	}
 
 	private synchronized boolean isStopped() {
@@ -149,7 +146,14 @@ public class Server extends PApplet implements Runnable {
 
 		@Override
 		public void run() {
-			for (GameObj obj : Rectangles.movObjects) {
+			Packet n = packetQueue.poll();
+			while(n != null) {
+				for (Client client : this.clients) {
+					client.write(n);
+				}
+				n = packetQueue.poll();
+			}
+			for (GameObj obj : Rectangles.objects) {
 				Packet p = new Packet(Packet.PACKET_UPDATE, obj);
 				for (Client client : this.clients) {
 					client.write(p);

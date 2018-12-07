@@ -44,17 +44,20 @@ public class Rectangles extends PApplet {
 	public static Timeline physicsTimeline = new LocalTimeline(globalTimeline, 2);
 	public static Timeline networkTimeline = new LocalTimeline(globalTimeline, 12);
 	public static Timeline renderTimeline = new LocalTimeline(globalTimeline, 12);
+	public static Timeline bubblesTimeline = new LocalTimeline(eventTimeline, 5000);
 	public static EventManager eventManager = new EventManager();
 	public static ExecutorService threadPool = Executors.newFixedThreadPool(NUM_THREADS);
 	public static Replay replay = new Replay();
+	
 
 
 
 	public static Player player;
 	public static String game;
+	public static Server server;
+
 	
 	private boolean isServer;
-	private Server server;
 	private Client localClient;
 	private GameObj floor;
 	private GameObj ceiling;
@@ -86,6 +89,7 @@ public class Rectangles extends PApplet {
 			// Register moving objects
 			for (GameObj obj : movObjects) {
 				eventManager.registerHandler(obj, Event.EVENT_COLLISION);
+				eventManager.registerHandler(obj, Event.EVENT_PHYSICS);
 				eventManager.registerHandler(obj, Event.EVENT_MOVEMENT);
 				eventManager.registerHandler(obj, Event.EVENT_INPUT);
 				eventManager.registerHandler(obj, Event.EVENT_DEATH);
@@ -115,6 +119,7 @@ public class Rectangles extends PApplet {
 			if (this.isServer) {
 				this.updateEvent(eventTimeline.resetDelta());
 				this.updateNetwork(networkTimeline.resetDelta());
+				this.updateBubbles(bubblesTimeline.resetDelta());
 			}
 			this.updateRender(renderTimeline.resetDelta());
 		}
@@ -126,6 +131,27 @@ public class Rectangles extends PApplet {
 	private void updateEvent(boolean delta) {
 		if (delta) {
 			threadPool.execute(eventManager);
+		}
+	}
+	
+	private void updateBubbles(boolean delta) {
+		if (delta) {
+			for (GameObj obj : objects) {
+				if (obj.getType() == "platform" && !((Platform) obj).isQueued()) {
+					HashMap<String, Object> data = new HashMap<>();
+					data.put("caller", obj.getUUID());
+					data.put("x", obj.getPy().getLocation().x);
+					data.put("y", obj.getPy().getLocation().y + 20);
+					Event e = new Event(Event.EVENT_MOVEMENT, globalTimeline.getCurrentTime(), data);
+					eventManager.raiseEvent(e);
+					
+					// Raise Physics event to check for collisions
+					HashMap<String, Object> py = new HashMap<>();
+					py.put("caller", obj.getUUID());
+					Event p = new Event(Event.EVENT_PHYSICS, globalTimeline.getCurrentTime(), data);
+					eventManager.raiseEvent(p);
+				}
+			}
 		}
 	}	
 
@@ -179,7 +205,7 @@ public class Rectangles extends PApplet {
 			 * Begin game definitions
 			 */
 			
-			String file;
+			String file = null;
 			FileReader script = null;
 			try {
 				file = new File("scripts/" + Rectangles.game + "/init.js").getAbsolutePath();
@@ -195,6 +221,7 @@ public class Rectangles extends PApplet {
 			ScriptManager.bindArgument("width", width);
 			ScriptManager.bindArgument("height", height);
 			ScriptManager.bindArgument("self", this);
+			System.out.println(file.toString());
 			ScriptManager.loadScript(script);
 
 

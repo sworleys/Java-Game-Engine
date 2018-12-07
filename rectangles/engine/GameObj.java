@@ -42,6 +42,9 @@ public abstract class GameObj extends EngineObject {
 		this.rotated += angle;
 	}
 	
+	public void setRotation(int angle) {
+		this.rotated = angle;
+	}
 	public int getRotation() {
 		return this.rotated;
 	}
@@ -86,6 +89,7 @@ public abstract class GameObj extends EngineObject {
 		this.rend.getInst().shape(this.getRend().getShape(),
 				this.getPy().getLocation().x, this.getPy().getLocation().y);
 	}
+
 	
 	public void handleEvent(Event e) {
 		String file;
@@ -105,10 +109,11 @@ public abstract class GameObj extends EngineObject {
 		ScriptManager.bindArgument("objectMap", Rectangles.objectMap);
 		ScriptManager.bindArgument("objects", Rectangles.objects);
 		ScriptManager.bindArgument("movObjects", Rectangles.movObjects);
+		ScriptManager.bindArgument("server", Rectangles.server);
 		ScriptManager.loadScript(script);
 		ScriptManager.executeScript("handle_event", this, e, Rectangles.objectMap);
 	}
-
+	
 	public void raiseEvent(int type, long time, HashMap<String, Object> data) {
 //		if (time < 0) {
 //			time = Rectangles.globalTimeline.getCurrentTime()
