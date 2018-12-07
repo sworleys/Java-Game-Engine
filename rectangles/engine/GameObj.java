@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import engine.events.Event;
 import engine.scripting.ScriptManager;
+import networking.Packet;
 import processing.core.PApplet;
 
 public abstract class GameObj extends EngineObject {
@@ -18,6 +19,7 @@ public abstract class GameObj extends EngineObject {
 	private float objHeight;
 	private boolean isFloor;
 	private int rotated = 0;
+	protected String type;
 
 	private UUID uuid = UUID.randomUUID();
 
@@ -30,9 +32,15 @@ public abstract class GameObj extends EngineObject {
 
 	}
 	
-	public abstract String getType();
-	
 	public abstract String toSerial();
+	
+	public String getType() {
+		return this.type;
+	}
+	
+	public void setType(String type) {
+		this.type = type;
+	}
 	
 	public Renderable getRend() {
 		return this.rend;
@@ -90,6 +98,13 @@ public abstract class GameObj extends EngineObject {
 				this.getPy().getLocation().x, this.getPy().getLocation().y);
 	}
 
+	public void gameEnd(String s) {
+		Packet p = new Packet(Packet.PACKET_GAME_OVER, this);
+		System.out.println("Sending game over");
+		Rectangles.server.sendPacketNow(p);
+		//System.out.println(s);
+		rend.getInst().exit();
+	}
 	
 	public void handleEvent(Event e) {
 		String file;

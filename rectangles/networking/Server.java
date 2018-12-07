@@ -63,7 +63,7 @@ public class Server extends PApplet implements Runnable {
 			Client client = new Client(this.inst, clientSocket, this.threadPool, Rectangles.player);
 
 			for (GameObj obj : Rectangles.objects) {
-				if (obj.getType() != "player") {
+				if (!obj.getUUID().equals(client.getPlayer().getUUID())) {
 					Packet p = new Packet(Packet.PACKET_CREATE, obj);
 					client.write(p);
 				}

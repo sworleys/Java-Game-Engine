@@ -88,16 +88,23 @@ public class Rectangles extends PApplet {
 		if (this.isServer) {
 			// Register moving objects
 			for (GameObj obj : movObjects) {
+
+				if (obj.getUUID().equals(player.getUUID())) {
+					eventManager.registerHandler(obj, Event.EVENT_INPUT);
+				} else {
+					eventManager.registerHandler(obj, Event.EVENT_DEATH);
+					eventManager.registerHandler(obj, Event.EVENT_SPAWN);
+				}
 				eventManager.registerHandler(obj, Event.EVENT_COLLISION);
 				eventManager.registerHandler(obj, Event.EVENT_PHYSICS);
 				eventManager.registerHandler(obj, Event.EVENT_MOVEMENT);
-				eventManager.registerHandler(obj, Event.EVENT_INPUT);
-				eventManager.registerHandler(obj, Event.EVENT_DEATH);
-
-				if (obj.getType() == "player") {
-					eventManager.registerHandler(obj, Event.EVENT_SPAWN);
-				}
+				HashMap<String, Object> data = new HashMap<>();
+				data.put("caller", obj.getUUID());
+				Event e = new Event(Event.EVENT_PHYSICS,
+						globalTimeline.getCurrentTime() + (long) physicsTimeline.getTickSize(), data);
+				eventManager.raiseEvent(e);
 			}
+			
 			
 			// Register replays
 			eventManager.registerHandler(replay, Event.EVENT_INPUT);
@@ -326,10 +333,10 @@ public class Rectangles extends PApplet {
 	public static void main(String[] args) {
 		String[] processingArgs = {"Rectangles"};
 		Rectangles sketch;
-		if (args.length > 1) {
-			sketch = new Rectangles(args[0].toLowerCase(), args[1].toLowerCase().equals("server"));
+		if (args.length > 0) {
+			sketch = new Rectangles("breakout", args[0].toLowerCase().equals("server"));
 		} else {
-			sketch = new Rectangles(args[0].toLowerCase(), false);
+			sketch = new Rectangles("breakout", false);
 		}
 		PApplet.runSketch(processingArgs, sketch);
 		

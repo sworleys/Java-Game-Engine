@@ -16,6 +16,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.sun.xml.internal.bind.v2.runtime.reflect.Lister.Pack;
+
 import engine.GameObj;
 import engine.Player;
 import engine.Rectangles;
@@ -163,6 +165,9 @@ public class Client implements Runnable {
 		@Override
 		public void run() {
 			synchronized (this.getClient().getOutput()) {
+				if (p.getUuid().equals(Rectangles.player.getUUID())) {
+					//System.out.println(p.getSerialData());
+				}
 				try {
 					this.getClient().getOutput().writeUTF(p.getSerialData());
 				} catch (SocketException e) {

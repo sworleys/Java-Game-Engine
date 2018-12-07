@@ -12,6 +12,7 @@ import processing.core.PVector;
 
 public class Player extends GameObj {
 	private float dim;
+	private boolean isBall = false;
 	
 	public Player(PApplet inst, float dim, float x, float y) {
 		super(dim, dim, 0, x, y, false, true);
@@ -20,6 +21,12 @@ public class Player extends GameObj {
 		this.rend = new Renderable(inst, color, PShape.RECT, dim, dim);
 	}
 
+	public Player(PApplet inst, float width, float height, float x, float y) {
+		super(width, height, 0, x, y, false, true);
+		int[] color = {(int) random(255), (int) random(255), (int) random(255)};
+		this.rend = new Renderable(inst, color, PShape.RECT, width, height);
+	}
+	
 	@Override
 	public String getType() {
 		return "player";
@@ -28,11 +35,20 @@ public class Player extends GameObj {
 	public float getDim() {
 		return this.dim;
 	}
+	
+	public boolean isBall() {
+		return isBall;
+	}
+	
+	public void setIsBall(boolean val) {
+		this.isBall = val;
+	}
 
 	@Override
 	public String toSerial() {
 		String serial = "{"
-				+ "dim:" + this.dim + ","
+				+ "width:" + this.getObjWidth() + ","
+				+ "height:" + this.getObjHeight() + ","
 				+ "x:" + this.getPy().getLocation().x + ","
 				+ "y:" + this.getPy().getLocation().y + ","
 				+ "rotation:" + this.getRotation() + ","
@@ -48,22 +64,7 @@ public class Player extends GameObj {
 		return Rectangles.spawnPoints[Rectangles.generator.nextInt(Rectangles.spawnPoints.length)];
 	}
 	
-	public void draw() {
-		//if (obj.getType() == "player") {
-		this.getRend().getInst().pushMatrix();
-		//this.translate(obj.getPy().getLocation().x,
-			//obj.getPy().getLocation().y);
-	//	if (obj.getRotation() != 0) {
-		this.getRend().getInst().translate(this.getRend().getInst().width/2, this.getRend().getInst().height);
-		this.getRend().getInst().rotate(PApplet.radians(getRotation()));
-		//System.out.println(Math.cos(PApplet.radians(getRotation())) + ":" + Math.sin(PApplet.radians(getRotation())));
-		//}
-	//}
-		this.getRend().getInst().shape(getRend().getShape(), 100, 0);
-	//if (obj.getType() == "player") {
-		this.getRend().getInst().popMatrix();
-	//}
-	}
+
 
 	
 	/**
@@ -76,7 +77,8 @@ public class Player extends GameObj {
 	}
 	
 	public static Player deSerial(PApplet inst, String serial) {
-		float dim = 0;
+		float width = 0;
+		float height = 0;
 		float x = 0;
 		float y = 0;
 		int rotation = 0;
@@ -91,8 +93,11 @@ public class Player extends GameObj {
 			String value = subData[1];
 
 			switch(key) {
-			case("dim"):
-				dim = Float.parseFloat(value);
+			case("width"):
+				width = Float.parseFloat(value);
+				break;
+			case("height"):
+				height = Float.parseFloat(value);
 				break;
 			case("x"):
 				x = Float.parseFloat(value);
@@ -114,7 +119,7 @@ public class Player extends GameObj {
 				break;
 			}
 		}
-		Player res = new Player(inst, dim, x, y);
+		Player res = new Player(inst, width, height, x, y);
 		res.setRotation(rotation);
 		res.rend.setColor(color);
 		return res;

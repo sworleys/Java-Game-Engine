@@ -188,7 +188,6 @@ public class Packet {
 			case ("player"):
 				this.obj = Player.deSerial(this.inst, objectSerial);
 				Rectangles.movObjects.add(this.obj);
-				//System.out.println(this.uuid + ": " + this.obj.getRend().getColorToString());
 				if(this.type == PACKET_REGISTER) {
 					Rectangles.player = (Player) this.obj;
 				}

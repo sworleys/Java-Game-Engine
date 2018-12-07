@@ -116,6 +116,10 @@ public class Physics extends PApplet implements Shape {
 	public void setVelocityX(float velocity) {
 		this.velocity.x = velocity;
 	}
+	
+	public void setVelocityY(float velocity) {
+		this.velocity.y = velocity;
+	}
 
 	public float getTopSpeed() {
 		return topSpeed;

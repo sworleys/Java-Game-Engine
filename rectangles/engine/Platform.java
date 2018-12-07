@@ -43,19 +43,16 @@ public class Platform extends GameObj {
 	public void registerInput() {
 		Rectangles.eventManager.registerHandler(this, Event.EVENT_INPUT);
 	}
-	
-	public void gameEnd(String s) {
-		Packet p = new Packet(Packet.PACKET_GAME_OVER, this);
-		System.out.println("Sending game over");
-		Rectangles.server.sendPacketNow(p);
-		//System.out.println(s);
-		rend.getInst().exit();
-	}
+
 	
 	public void registerPhysics() {
 		Rectangles.eventManager.registerHandler(this, Event.EVENT_COLLISION);
 		Rectangles.eventManager.registerHandler(this, Event.EVENT_MOVEMENT);
 		Rectangles.eventManager.registerHandler(this, Event.EVENT_PHYSICS);
+		Rectangles.eventManager.registerHandler(this, Event.EVENT_DEATH);
+	}
+	
+	public void registerDeath() {
 		Rectangles.eventManager.registerHandler(this, Event.EVENT_DEATH);
 	}
 
