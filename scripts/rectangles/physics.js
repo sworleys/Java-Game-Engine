@@ -37,5 +37,6 @@ function update(self, caller) {
 	// Reset acceleration?
 	if (self.isGrav()) {
 		self.resetAcceleration();
+		self.setVelocityX(0);
 	}
 }

@@ -61,6 +61,8 @@ public class Rectangles extends PApplet {
 	private GameObj rightWall;
 
 	private boolean setup = false;
+	public static Object lock = new Object();
+
 
 	
 	public Rectangles(String game, boolean isServer) {
@@ -148,6 +150,7 @@ public class Rectangles extends PApplet {
 	}
 
 	public void setup() {
+		synchronized (lock) {
 		background(0);
 		// Just set to be unreasonably high
 		frameRate(1000);
@@ -228,6 +231,7 @@ public class Rectangles extends PApplet {
 		}
 		
 		this.setup = true;
+		}
 	}
 
 	public void draw() {
@@ -299,14 +303,15 @@ public class Rectangles extends PApplet {
 	public static void main(String[] args) {
 		String[] processingArgs = {"Rectangles"};
 		Rectangles sketch;
-		if (args.length > 1) {
-			sketch = new Rectangles(args[0].toLowerCase(), args[1].toLowerCase().equals("server"));
+		if (args.length > 0) {
+			sketch = new Rectangles("rectangles", args[0].toLowerCase().equals("server"));
 		} else {
-			sketch = new Rectangles(args[0].toLowerCase(), false);
+			sketch = new Rectangles("rectangles", false);
 		}
 		PApplet.runSketch(processingArgs, sketch);
 		while (!sketch.isSetup()) {
-			System.out.println("Waiting...");
+			synchronized (lock) {
+			}
 		}
 		sketch.runLoop();
 	}

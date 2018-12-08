@@ -70,10 +70,10 @@ function event_input(self, e) {
 	if (e.getData().get("caller").equals(self.getUUID())) {
 		switch(e.getData().get("keyCode")) {
 		case 37:
-			self.getPy().setAccelerationX(-5);
+			self.getPy().setVelocityX(-10);
 			break;
 		case 39:
-			self.getPy().setAccelerationX(5);
+			self.getPy().setVelocityX(10);
 			break;
 		case 32:
 			self.getPy().setAccelerationY(-20);
