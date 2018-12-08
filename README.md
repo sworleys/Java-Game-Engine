@@ -18,7 +18,7 @@ How to run:
 6) Now you can play with it like so:
 
 Arrow Keys: move
-Space: Jump
+Space: Shoot
 
 Start Recording: r
 Stop and Play Recording: s  (This defaults to 1/2 speed)
