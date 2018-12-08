@@ -50,8 +50,9 @@ var ball = new Player(self, pWidth, pHeight, spawnPoints[0].getPy().getLocation(
 		spawnPoints[0].getPy().getLocation().y);
 var random_int = Math.floor(Math.random() * 4);
 ball.getRend().setColor(white);
-ball.getPy().setTopSpeed(5);
-ball.getPy().setVelocityY(-1);
+ball.getPy().setTopSpeed(1.5);
+ball.getPy().setVelocityY(-0.3);
+ball.getPy().setVelocityX(-0.2);
 ball.setIsBall(true);
 objects.add(ball);
 objectMap.put(ball.getUUID(), ball);
@@ -64,18 +65,12 @@ var bricks = [];
 var j;
 var i;
 var row_length = Math.floor(width / (pWidth));
-var above_space = 100;
+var above_space = 50;
 
 for (j = 0; j < num_rows; j++) {
-	var color = [
-		Math.floor(Math.random() * 255) + 1, 
-		Math.floor(Math.random() * 255) + 1,
-		Math.floor(Math.random() * 255) + 1
-		];
 	for (i = 0; i < row_length; i++) {
 		var b = new Platform(self, pWidth, pHeight, ((pWidth) * i), 
 				(pHeight) * j + above_space, false);
-		b.getRend().setColor(color);
 		b.registerDeath();
 		bricks.push(b);
 	}

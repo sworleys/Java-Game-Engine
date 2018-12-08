@@ -7,8 +7,7 @@ function update(self, caller) {
 	var collidedWith = null;
 	
 	for each (var obj in objects) {
-		if (self.intersects(obj.getPy().getBounds2D()) && !(obj.getUUID() == caller.getUUID())
-				&& !(obj.getType() == "player")) {
+		if (self.intersects(obj.getPy().getBounds2D()) && !(obj.getUUID() == caller.getUUID())) {
 			collidedWith = obj;
 			// TODO: Need break here?
 			break;

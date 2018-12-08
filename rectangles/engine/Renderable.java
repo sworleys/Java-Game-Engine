@@ -15,7 +15,7 @@ public class Renderable {
 		this.color = color;
 		this.type = type;
 		this.shape = inst.createShape(type, 0, 0, width, height);
-		this.shape.setFill(inst.color(color[0], color[1], color[2]));
+		this.shape.setFill(this.inst.color(color[0], color[1], color[2]));
 		this.shape.setStroke(false);
 	}
 

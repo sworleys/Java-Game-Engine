@@ -3,7 +3,8 @@ package engine;
 import engine.events.Event;
 
 public class Boundary extends GameObj{
-
+	private boolean isCeiling = false;
+	
 	public Boundary(float objWidth, float objHeight, float x, float y, boolean isFloor) {
 		super(objWidth, objHeight, 0, x, y, isFloor, false);
 	}
@@ -11,6 +12,14 @@ public class Boundary extends GameObj{
 	@Override
 	public String getType() {
 		return "boundary";
+	}
+	
+	public boolean isCeiling() {
+		return this.isCeiling;
+	}
+	
+	public void setIsCeiling(boolean val) {
+		this.isCeiling = val;
 	}
 	
 	@Override

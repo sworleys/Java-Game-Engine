@@ -59,10 +59,10 @@ public class Rectangles extends PApplet {
 	
 	private boolean isServer;
 	private Client localClient;
-	private GameObj floor;
-	private GameObj ceiling;
-	private GameObj leftWall;
-	private GameObj rightWall;
+	private Boundary floor;
+	private Boundary ceiling;
+	private Boundary leftWall;
+	private Boundary rightWall;
 
 	private boolean setup = false;
 	public static Object lock = new Object();
@@ -192,6 +192,7 @@ public class Rectangles extends PApplet {
 			// Add screen boundaries
 			this.floor = new Boundary(width, (float) 100, 0, height, true);
 			this.ceiling = new Boundary(width, (float) 100, 0, -100, false);
+			this.ceiling.setIsCeiling(true);
 			this.leftWall = new Boundary((float) 100, height, -100, 0, false);
 			this.rightWall = new Boundary((float) 100, height, width, 0, false);
 
@@ -275,7 +276,7 @@ public class Rectangles extends PApplet {
 
 	private void renderAll(CopyOnWriteArrayList<GameObj> objects) {
 		for (GameObj obj : objects) {
-			this.render(obj);;
+			this.render(obj);
 		}
 	}
 	

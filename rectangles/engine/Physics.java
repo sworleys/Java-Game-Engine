@@ -31,6 +31,8 @@ public class Physics extends PApplet implements Shape {
 	private float objHeight;
 	private float mass;
 	private boolean isGrav;
+	
+	private PVector last_velocity = new PVector(0, 0);
 
 	public Physics(float x, float y, float objWidth, float objHeight, float mass, float topSpeed, boolean isGrav) {
 		this.isGrav = isGrav;
@@ -68,6 +70,13 @@ public class Physics extends PApplet implements Shape {
 		ScriptManager.executeScript("update", this, caller);
 	}
 	
+	public void updateLastVelocity() {
+		this.last_velocity.set(this.velocity);
+	}
+	
+	public PVector getLastVelocity() {
+		return this.last_velocity;
+	}
 	// From processing tutorial forces with vectors
 	public void applyForce(PVector force) {
 		PVector f = PVector.div(force, this.mass);

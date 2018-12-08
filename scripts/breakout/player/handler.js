@@ -16,12 +16,21 @@ function event_collision(self, e, object_map) {
 			if (collidedWith.isFloor()) {
 				self.gameEnd("You lose");
 			} else {
-				self.getPy().getVelocity().mult(-2);
+				self.getPy().setVelocityX(self.getPy().getVelocity().x * -1);
 				switch (collidedWith.getType()) {
+				case "boundary":
+					if (!collidedWith.isCeiling()) {
+						break;
+					}
 				case "platform":
 					var collider = new (java.util.HashMap)();
 					collider["caller"] = collidedWith.getUUID();
 					self.raiseEvent(EVENT.EVENT_DEATH, e.getTime(), collider);
+				case "player":
+					self.getPy().getVelocity().mult(-1);
+					self.getPy().getVelocity().add(
+							collidedWith.getPy().getLastVelocity().x / collidedWith.getPy().getTopSpeed(),
+							self.getPy().getVelocity().y);
 					break;
 				}
 			}
@@ -73,6 +82,7 @@ function event_movement(self, e) {
 				e.getData().get("y"));
 		self.getPy().setLocation(newLoc);
 		if (!self.isBall()) {
+			self.getPy().updateLastVelocity();
 			self.getPy().getVelocity().mult(0);
 		}
 	}
