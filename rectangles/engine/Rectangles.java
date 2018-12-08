@@ -326,10 +326,10 @@ public class Rectangles extends PApplet {
 	public static void main(String[] args) {
 		String[] processingArgs = {"Rectangles"};
 		Rectangles sketch;
-		if (args.length > 1) {
-			sketch = new Rectangles(args[0].toLowerCase(), args[1].toLowerCase().equals("server"));
+		if (args.length > 0) {
+			sketch = new Rectangles("bubbles", args[0].toLowerCase().equals("server"));
 		} else {
-			sketch = new Rectangles(args[0].toLowerCase(), false);
+			sketch = new Rectangles("bubbles", false);
 		}
 		PApplet.runSketch(processingArgs, sketch);
 		
