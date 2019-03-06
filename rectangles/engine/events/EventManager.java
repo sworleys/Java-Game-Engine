@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EventObject;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.PriorityBlockingQueue;
 
 import org.w3c.dom.css.Rect;
@@ -29,14 +31,14 @@ public class EventManager implements Runnable {
 		}
 	};
 	
-	private HashMap<Integer, ArrayList<EngineObject>> registrar = new HashMap<>();
+	private HashMap<Integer, CopyOnWriteArrayList<EngineObject>> registrar = new HashMap<>();
 	private PriorityBlockingQueue<Event> eventQueue = new PriorityBlockingQueue<>(11, eventCompare);
 
 
 
 	public void registerHandler(EngineObject handler, int type) {
 		if (!this.registrar.containsKey(type)) {
-			this.registrar.put(type, new ArrayList<EngineObject>());
+			this.registrar.put(type, new CopyOnWriteArrayList<EngineObject>());
 		}
 		this.registrar.get(type).add(handler);
 	}
@@ -52,10 +54,14 @@ public class EventManager implements Runnable {
 	@Override
 	public void run() {
 		Event next = this.eventQueue.poll();
-		// System.out.println(next.getType() + " : " +
-		// Rectangles.objectMap.get(next.getData().get("caller")).getType());
+		//System.out.println(this.eventQueue.size());
+		//System.out.println(next.getType() + " : " +
+		//Rectangles.objectMap.get(next.getData().get("caller")).getType());
 		// System.out.println(next.getData().getOrDefault("isReplay", false));
 		if (next != null) {
+			if (next.getType() == Event.EVENT_PHYSICS) {
+				//System.out.println(this.registrar.get(next.getType()).size());
+			}
 			for (EngineObject handler : this.registrar.get(next.getType())) {
 				handler.handleEvent(next);
 				// Rectangles.threadPool.execute(handler.getReader(next));
@@ -63,11 +69,11 @@ public class EventManager implements Runnable {
 		}
 	}
 
-	public HashMap<Integer, ArrayList<EngineObject>> getRegistrar() {
+	public HashMap<Integer, CopyOnWriteArrayList<EngineObject>> getRegistrar() {
 		return registrar;
 	}
 
-	public void setRegistrar(HashMap<Integer, ArrayList<EngineObject>> registrar) {
+	public void setRegistrar(HashMap<Integer, CopyOnWriteArrayList<EngineObject>> registrar) {
 		this.registrar = registrar;
 	}
 

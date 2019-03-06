@@ -1,5 +1,8 @@
 package engine;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -14,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 import engine.events.Event;
 import engine.events.EventManager;
+import engine.scripting.ScriptManager;
 import engine.time.GlobalTimeline;
 import engine.time.LocalTimeline;
 import engine.time.Timeline;
@@ -46,6 +50,7 @@ public class Rectangles extends PApplet {
 
 
 	public static Player player;
+	public static String game;
 	
 	private boolean isServer;
 	private Server server;
@@ -56,10 +61,13 @@ public class Rectangles extends PApplet {
 	private GameObj rightWall;
 
 	private boolean setup = false;
+	public static Object lock = new Object();
+
 
 	
-	public Rectangles(boolean isServer) {
+	public Rectangles(String game, boolean isServer) {
 		this.isServer = isServer;
+		Rectangles.game = game;
 		System.out.println("Server: " + this.isServer);
 		
 		// Start timelines
@@ -87,8 +95,7 @@ public class Rectangles extends PApplet {
 				}
 				HashMap<String, Object> data = new HashMap<>();
 				data.put("caller", obj.getUUID());
-				Event e = new Event(Event.EVENT_PHYSICS,
-						globalTimeline.getCurrentTime() + (long) physicsTimeline.getTickSize(), data);
+				Event e = new Event(Event.EVENT_PHYSICS, physicsTimeline.getCurrentTime(), data);
 				eventManager.raiseEvent(e);
 			}
 			
@@ -111,7 +118,6 @@ public class Rectangles extends PApplet {
 		if (delta) {
 			if (this.isServer) {
 				this.updateEvent(eventTimeline.resetDelta());
-				// this.updatePhysics(physicsTimeline.getAndResetDelta());
 				this.updateNetwork(networkTimeline.resetDelta());
 			}
 			this.updateRender(renderTimeline.resetDelta());
@@ -139,21 +145,12 @@ public class Rectangles extends PApplet {
 		}
 	}
 
-	private void updatePhysics(boolean delta) {
-		// Dummy Renderer?
-		if (delta && this.isServer) {
-			// Update physics
-			for (GameObj obj : movObjects) {
-				obj.getPy().update(obj, objects);
-			}
-		}		
-	}
-
 	public void settings() {
 		size(640, 360);
 	}
 
 	public void setup() {
+		synchronized (lock) {
 		background(0);
 		// Just set to be unreasonably high
 		frameRate(1000);
@@ -163,35 +160,6 @@ public class Rectangles extends PApplet {
 
 		// Setup Server
 		if (this.isServer) {
-			
-			float sqrDim = 50;
-
-			// Spawn Points
-			spawnPoints[0] =  new Spawn(this, width - sqrDim, 0 + sqrDim);
-			spawnPoints[1] =  new Spawn(this, width - sqrDim, height - sqrDim);
-
-			for (Spawn s : spawnPoints) {
-				objects.add(s);
-				objectMap.put(s.getUUID(), s);	
-			}
-			
-			// Death Zone
-			DeathZone dz_1 = new DeathZone(this, 0, 0);
-			objects.add(dz_1);
-			objectMap.put(dz_1.getUUID(), dz_1);
-			
-			// Player
-			Spawn rand = spawnPoints[generator.nextInt(2)];
-			player = new Player(this, sqrDim, rand.getPy().getLocation().x,
-					rand.getPy().getLocation().y);
-
-			this.server = new Server(this, 9200, this.threadPool, player);
-			this.localClient = this.server.getLocalClient();
-			new Thread(this.server).start();
-			
-			this.server.newPacket(Packet.PACKET_CREATE, player);
-
-
 			// Add screen boundaries
 			this.floor = new Boundary(width, (float) 100, 0, height, true);
 			this.ceiling = new Boundary(width, (float) 100, 0, -100, false);
@@ -200,68 +168,57 @@ public class Rectangles extends PApplet {
 
 			objects.add(this.floor);
 			objectMap.put(this.floor.getUUID(), this.floor);
-			this.server.newPacket(Packet.PACKET_CREATE, this.floor);
 			
 			objects.add(this.ceiling);
 			objectMap.put(this.ceiling.getUUID(), this.ceiling);
-			this.server.newPacket(Packet.PACKET_CREATE, this.ceiling);
 
 			objects.add(this.leftWall);
 			objectMap.put(this.leftWall.getUUID(), this.leftWall);
-			this.server.newPacket(Packet.PACKET_CREATE, this.leftWall);
 
 			objects.add(this.rightWall);
 			objectMap.put(this.rightWall.getUUID(), this.rightWall);
-			this.server.newPacket(Packet.PACKET_CREATE, this.rightWall);
-
-
-
-
-			// Platforms
-			float pWidth = width / 5;
-			float pHeight = 25;
-
-			ArrayList<Platform> staticPlatforms = new ArrayList<Platform>();
-			ArrayList<Platform> movPlatforms = new ArrayList<Platform>();
-
-			//Platform static_1 = new Platform(this, pWidth, pHeight, width - 4*pWidth, 500, false);
-			Platform static_1 = new Platform(this, pWidth, pHeight, width - pWidth, 100, false);
 
 			
-			staticPlatforms.add(static_1);
-
-			Platform mov_1 = new Platform(this, pWidth, pHeight, width - 3*pWidth, 150, false);
-			Platform mov_2 = new Platform(this, pWidth, pHeight, width - 5*pWidth, 250, false);
-
-
-			movPlatforms.add(mov_1);
-			movPlatforms.add(mov_2);
-
-			for (Platform p : movPlatforms) {
-				p.getPy().setTopSpeed(2);
-				p.getPy().setVelocity(new PVector(2, 0));
-			}
+			/**
+			 * Begin game definitions
+			 */
 			
-			Platform mov_3 = new Platform(this, pWidth, pHeight, 0, 100, false);
-			mov_3.getPy().setTopSpeed(2);
-			mov_3.getPy().setVelocity(new PVector(0, 2));
-			movPlatforms.add(mov_3);
-
-
-			for (Platform p : staticPlatforms) {
-				objects.add(p);
-				objectMap.put(p.getUUID(), p);
-				this.server.newPacket(Packet.PACKET_CREATE, p);
-
+			String file;
+			FileReader script = null;
+			try {
+				file = new File("scripts/" + Rectangles.game + "/init.js").getAbsolutePath();
+				script = new FileReader(file);
+			} catch (FileNotFoundException e1) {
+				e1.printStackTrace();
 			}
+			ScriptManager.bindArgument("objects", Rectangles.objects);
+			ScriptManager.bindArgument("objectMap", Rectangles.objectMap);
+			ScriptManager.bindArgument("movObjects", Rectangles.movObjects);
+			ScriptManager.bindArgument("spawnPoints", Rectangles.spawnPoints);
+			ScriptManager.bindArgument("generator", Rectangles.generator);
+			ScriptManager.bindArgument("width", width);
+			ScriptManager.bindArgument("height", height);
+			ScriptManager.bindArgument("self", this);
+			ScriptManager.loadScript(script);
+
+
+
+			/**
+			 * End game definitions
+			 */
+
 			
-			for (Platform p : movPlatforms) {
-				objects.add(p);
-				objectMap.put(p.getUUID(), p);
-				movObjects.add(p);
-				this.server.newPacket(Packet.PACKET_CREATE, p);
-			}
+			// Server
+			this.server = new Server(this, 9200, Rectangles.threadPool, player);
+			this.localClient = this.server.getLocalClient();
+			new Thread(this.server).start();
 
+			this.server.newPacket(Packet.PACKET_CREATE, player);
+
+			// Create Packet for all Objects
+			for (GameObj obj : Rectangles.objects) {
+				this.server.newPacket(Packet.PACKET_CREATE, obj);
+			}
 	
 		} else {
 			try {
@@ -274,6 +231,7 @@ public class Rectangles extends PApplet {
 		}
 		
 		this.setup = true;
+		}
 	}
 
 	public void draw() {
@@ -336,11 +294,8 @@ public class Rectangles extends PApplet {
 		return this.setup;
 	}
 
-	public static void setPlayer(Player p) {
+	public void setPlayer(Player p) {
 		player = p;
-		objectMap.put(player.getUUID(), player);
-		objects.add(player);
-		movObjects.add(player);
 	}
 	
 	// API stuff from https://happycoding.io/tutorials/java/processing-in-java
@@ -349,13 +304,14 @@ public class Rectangles extends PApplet {
 		String[] processingArgs = {"Rectangles"};
 		Rectangles sketch;
 		if (args.length > 0) {
-			sketch = new Rectangles(args[0].toLowerCase().equals("server"));
+			sketch = new Rectangles("rectangles", args[0].toLowerCase().equals("server"));
 		} else {
-			sketch = new Rectangles(false);
+			sketch = new Rectangles("rectangles", false);
 		}
 		PApplet.runSketch(processingArgs, sketch);
 		while (!sketch.isSetup()) {
-			System.out.println("Waiting...");
+			synchronized (lock) {
+			}
 		}
 		sketch.runLoop();
 	}

@@ -40,6 +40,12 @@ public class Player extends GameObj {
 		return serial;
 	}
 	
+	/*
+	 * Helper to get spawn for script
+	 */
+	public Spawn getRandomSpawn() {
+		return Rectangles.spawnPoints[Rectangles.generator.nextInt(2)];
+	}
 	
 	public static Player deSerial(PApplet inst, String serial) {
 		float dim = 0;
@@ -80,112 +86,6 @@ public class Player extends GameObj {
 		Player res = new Player(inst, dim, x, y);
 		res.rend.setColor(color);
 		return res;
-	}
-
-	@Override
-	public void handleEvent(Event e) {
-		
-		switch(e.getType()) {
-		case(Event.EVENT_COLLISION):
-			if (((UUID) e.getData().get("caller")).equals(this.getUUID())) {
-				GameObj collidedWith = Rectangles.objectMap.get((UUID) e.getData().get("collidedWith"));
-				if (collidedWith.isFloor()) {
-					this.getPy().getVelocity().y = (float) -1;
-				} else {
-					switch (collidedWith.getType()) {
-					case ("player"):
-						System.out.println("player hit player");
-						// Do nothing, clip-less
-						break;
-					case ("platform"):
-						this.getPy().getAcceleration().mult((float) -1);
-						if (this.getPy().getVelocity().y > 0) {
-							this.getPy().getVelocity().y = (float) 0;
-						} else {
-							this.getPy().getVelocity().y = (float) -1;
-							this.getPy().getVelocity().x = (float) 0;
-						}
-						break;
-					case ("death-zone"):
-						HashMap<String, Object> data = new HashMap<>();
-						data.put("caller", this.getUUID());
-						Event death = new Event(Event.EVENT_DEATH, e.getTime(), data);
-						Rectangles.eventManager.raiseEvent(death);
-						break;
-					default:
-						this.getPy().getVelocity().mult((float) -1);
-						break;
-					}
-				}
-				if (this.getPy().getVelocity().mag() > 0) {
-					PVector newLoc = new PVector(this.getPy().getLocation().x, this.getPy().getLocation().y);
-					newLoc.add(this.getPy().getVelocity());
-					HashMap<String, Object> data = new HashMap<>();
-					data.put("caller", this.getUUID());
-					data.put("x", newLoc.x);
-					data.put("y", newLoc.y);
-					Event mov = new Event(Event.EVENT_MOVEMENT, e.getTime(), data);
-					Rectangles.eventManager.raiseEvent(mov);
-					// Actually move
-					//this.getPy().setLocation(newLoc);
-				}
-			}
-			break;
-		case(Event.EVENT_DEATH):
-			if (((UUID) e.getData().get("caller")).equals(this.getUUID())) {
-				Rectangles.deathPoints++;
-				HashMap<String, Object> data = new HashMap<>();
-				data.put("caller", this.getUUID());
-				Event spawn = new Event(Event.EVENT_SPAWN, e.getTime(), data);
-				Rectangles.eventManager.raiseEvent(spawn);
-			}
-			break;
-		case(Event.EVENT_SPAWN):
-			if (((UUID) e.getData().get("caller")).equals(this.getUUID())) {
-				Spawn s = Rectangles.spawnPoints[Rectangles.generator.nextInt(2)];
-				HashMap<String, Object> data = new HashMap<>();
-				data.put("caller", this.getUUID());
-				data.put("x", s.getPy().getLocation().x);
-				data.put("y", s.getPy().getLocation().y);
-				Event mov = new Event(Event.EVENT_MOVEMENT, Rectangles.globalTimeline.getCurrentTime()
-						+ (long) Rectangles.physicsTimeline.getTickSize(), data);
-				Rectangles.eventManager.raiseEvent(mov);
-			}
-			break;
-		case(Event.EVENT_INPUT):
-			if (((UUID) e.getData().get("caller")).equals(this.getUUID())) {
-				switch((int) e.getData().get("keyCode")) {
-				case(PConstants.LEFT):
-					this.getPy().setAccelerationX(-5);
-					break;
-				case(PConstants.RIGHT):
-					this.getPy().setAccelerationX(5);
-					break;
-				case(' '):
-					this.getPy().setAccelerationY(-20);
-					break;
-				}
-			}
-			break;
-		case(Event.EVENT_MOVEMENT):
-			if (((UUID) e.getData().get("caller")).equals(this.getUUID())) {
-				PVector newLoc = new PVector((float) (e.getData().get("x")), (float) e.getData().get("y"));
-				this.getPy().setLocation(newLoc);
-			}
-			break;
-		case(Event.EVENT_PHYSICS):
-			if (((UUID) e.getData().get("caller")).equals(this.getUUID())) {
-				this.getPy().update(this, Rectangles.objects);
-				HashMap<String, Object> data = new HashMap<>();
-				data.put("caller", this.getUUID());
-				Event py = new Event(Event.EVENT_PHYSICS, e.getTime() + (long) Rectangles.physicsTimeline.getTickSize(), data);
-				Rectangles.eventManager.raiseEvent(py);
-			}
-			break;
-		default:
-			break;
-		}
-		
 	}
 
 }

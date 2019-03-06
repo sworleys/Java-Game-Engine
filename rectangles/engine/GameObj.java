@@ -1,9 +1,14 @@
 package engine;
 
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.util.HashMap;
 import java.util.UUID;
 
 import engine.events.Event;
+import engine.scripting.ScriptManager;
 import processing.core.PApplet;
 
 public abstract class GameObj extends EngineObject {
@@ -66,5 +71,48 @@ public abstract class GameObj extends EngineObject {
 
 	public boolean isFloor() {
 		return this.isFloor;
+	}
+	
+	public void handleEvent(Event e) {
+		String file;
+		FileReader script = null;
+		try {
+			file = new File("scripts/" + Rectangles.game + "/" + this.getType() + "/handler.js").getAbsolutePath();
+			script = new FileReader(file);
+		} catch (FileNotFoundException e1) {
+			file = new File("scripts/"  + Rectangles.game + "/handler.js").getAbsolutePath();
+			try {
+				script = new FileReader(file);
+			} catch (FileNotFoundException e2) {
+				e1.printStackTrace();
+			}
+		}
+		ScriptManager.loadScript(script);
+		ScriptManager.executeScript("handle_event", this, e, Rectangles.objectMap);
+	}
+
+	public void raiseEvent(int type, long time, HashMap<String, Object> data) {
+//		if (time < 0) {
+//			time = Rectangles.globalTimeline.getCurrentTime()
+//					+ (long) Rectangles.eventTimeline.getTickSize();
+//		}
+//		if (type == Event.EVENT_PHYSICS) {
+//			time += (long) Rectangles.physicsTimeline.getTickSize();
+//		}
+
+//		for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
+//		    System.out.println(ste);
+//		}
+		Event e = new Event(type, time, data);
+		if (!data.get("caller").equals(Rectangles.player.getUUID()) && e.getType() == Event.EVENT_PHYSICS) {
+			//System.out.println("platform" + e.getTime());
+		}
+		if (data.get("caller").equals(Rectangles.player.getUUID()) && e.getType() == Event.EVENT_PHYSICS) {
+			//System.out.println(e.getTime());
+		}
+		
+		Rectangles.eventManager.raiseEvent(e);
+		//System.out.println(Rectangles.player.getUUID());
+		//System.out.println(e.getData().get("caller") + " : " + e.getType() + " : " + e.getTime());
 	}
 }
